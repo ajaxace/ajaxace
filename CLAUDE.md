@@ -12,4 +12,6 @@ Every session in this repo runs lean by default. Do not wait to be asked.
 8. Anything that would need a long research run or a paid generation batch: state the cost in one line and ask first.
 9. Never switch on a paused/disabled scheduled task or raise a schedule's frequency without Jay's OK. The lean schedule is in `.claude/handoff/handoff-brief.md`.
 
+10. Spelling is locked: MASKA (never Masca), TWIX, JAY. Series: Maska & Friends. Do not ask again.
+
 Exceptions: safety rules and anything touching money, keys or property records are never shortened. If Jay asks for detail, give it in full.
