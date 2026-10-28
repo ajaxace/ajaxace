@@ -1,76 +1,55 @@
 # Handoff brief
 
-Written 2026-10-25T00:20:05.554Z at 61% context. Session c83bc727-9c59-55a1-8e3a-42c87c33a035. Project /home/user/ajaxace.
+Written 2026-10-28T02:53:20.119Z at 60% context. Session c83bc727-9c59-55a1-8e3a-42c87c33a035. Project /home/user/ajaxace.
 
 ## Goal
-Run Jay's system (n8n workflows plus Claude scheduled tasks) lean on Claude credits while it keeps working. Grow TikTok/Instagram @ajaxace1894. Push the Maska & Friends kids' books, including the "Maska & Twix Meet…" range for children with conditions and their families, out to publishers and charities. Keep a ruthless quality-control layer over every department.
+Jay (Thailand, UTC+7) wants his whole system run lean and finished: Claude scheduled tasks, n8n on his Hostinger server (97 workflows), and uploaded skills. Spelling is locked as MASKA (never Masca), TWIX, JAY; series "Maska & Friends". Repo `ajaxace/ajaxace`; work branch `ccr-7d0361cf-yyrgit`.
 
 ## Work in progress
-- **Lean mode n8n changes (all live):**
-  - Claude to Jarvis: hourly.
-  - Illustrator Brain: 08:00 and 20:00.
-  - Flight Watch: Tue and Fri 08:00, timezone set to Bangkok.
-  - Publisher Intake: 06:00. Writer: 06:30 and 18:30. Reviewer: 07:30 and 19:30.
-  - Self-Heal: 07:00.
-  - W5 Maid summary: Telegram only when not GREEN/OK.
-  - Research HQ Watchman: Sun, Mon, Wed, Fri.
-  - Deal Check: Friday only.
-  - Maska & Twix Bot: errorWorkflow set to Instant Error Alert.
-  - Report doc: 1WwidhdXu92O-VFp_5g2E-SclK2ZxLewLHkE9bM8JHgM. Pre-change JSON snapshots are in the scratchpad.
-- **Claude tasks:**
-  - Paused: Research deep dive, Book Research Packs, Watchdog, Skill Scout, Comment Engine, Storeroom Sorter.
-  - Switched off: hourly Maska bot builder.
-  - Publisher now 20:33 only. Inspection now 09:41 only.
-  - Re-enabled on 25 Oct (both had been off since 20/21 Oct): Post Performance Watch (trig_01D1pfteb72bmL5tPJVD6cKP) and Inspection (trig_01XPakrxxmz3BBomHzRm9hLu).
-- **Chief of Staff** (trig_016k4p8ihmSSNFehpRFDW1KD): rewritten as a quality controller. Runs 08:47, 14:47 and 20:47 Bangkok. At 14:47 he must act on the Auditor's block first.
-- **Auditor** (trig_01YAFX7mTTg7tsEWkrXK43cX): runs 12:17 Bangkok and grades the Chief. **Has no connectors.** Jay must add Zapier, Google Drive, Google Docs, n8n, Blotato and Claude Code Remote in the claude.ai Scheduled tasks UI.
-- **Publisher pitch deck:** https://claude.ai/artifact/7kTnfgipZAMLUZ1vbmZTVV, 10 slides, local root scratchpad/deck. Numbers are filled in. Author name is still to be chosen: "Ajax" or "Jay Clayton".
+- **PR #1 merged** (commit `ceab2314`) into `claude/hostinger-mcp-servers-8gpvn9`: adds `CLAUDE.md` with lean rules and the MASKA lock.
+- **Claude tasks:** Chief of Staff `trig_016k4p8ihmSSNFehpRFDW1KD` model changed Opus to Sonnet by me; its once-daily 09:55 Bangkok schedule and prompt were edited by someone else at 08:06 on 28 Oct. Auditor `trig_01YAFX7mTTg7tsEWkrXK43cX` runs 12:17, model unset (probably Opus). Box reminder `trig_01XRwdrBN6msXvEG4QCddNVd` set to Haiku.
+- **Clip desk** `trig_01YCkyY4eYSshXQK952nG4Zx`: new, Haiku, 17:23 Bangkok, **disabled, no connectors**. It books clips from "YES – post it" and edits at most one clip a day (40-credit cap).
+- **Restore log:** n8n data table `lean_changes` (`WFDTlzpcChmZ0AXc`, project `vQlqixidnpQyrAdP`), 7 rows with revert methods. Nothing watches it; Jay says "REVERT LEAN" and I undo.
+- **Baselines, 27 Oct UTC:** 1,394 n8n executions. Dashboard 296, Health Check 281, Claude to Jarvis 280, Reminders 97, Cheap Brain Router 50, Live Link Guard 24; Discord Reader, Watchdog and Maid Heartbeat 1 each; Search Router, Illustrator Brain, Illustration v1 and Self-Heal 0.
+- **Illustration v2** `Ia83OxujMLgX05YU`: live version `1c253831` (old upload code); finished draft `93aa45f2` (upload fix, settings table `GNH89rFUUS1gsqzx`). Jay says FINISHED, and history confirms the last save at 01:45Z and one run since. That run (`107803`) failed the Gate (extra head, TWIX collar missing), about $0.25 per job.
+- **Skill fixes:** the file `/tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/skill-fixes.md` holds Fixes 1–6 (backups in `skill-backup`). Sent to Jay; not yet applied.
+- **Masca scan (subagent, counts estimated):** about 33 matches in 8 workflows: Studio `phdC131RSbK7RWgv`, Writer `VuyhrpSbs5xs00r4`, Reviewer `VJVJ6h0DPmU61UV0`, v2, Gate `1pHxxsjf5JvMO0BG`, old 12-illustrator `4o7a75diSHUoAIum`, Brain `BP5bCbJyoEK7hJb9`, Dashboard `C2UonLGLmM5DPCs1`.
 
 ## Decisions made
-Jay approved all of the following:
-- Reminders, both Email Filing workflows, Free Book Machine sweep and Storeroom Mover keep their current frequency.
-- Lean cuts as listed above.
-- Keep the daily routine reminder, Inspection and Post Performance Watch running.
-- Chief of Staff at 3 runs a day, plus one Auditor at lunchtime.
-- The deck pitches the books as Jay's text paired with a publisher's human illustrator, and is honest about current AI-made editions.
-- Maverick Children's Books is the first submission target.
+- MASKA final; the Drive folder is already "Maska & Friends".
+- The 72-hour clock starts only after the Clip desk has run once and no one else is editing.
+- Brain Log dropped; the Private Queue test worked (job `Pmvrhjkn99t0`, row appeared).
+- Keep "LEAN:" lines in every task prompt until a test proves skills reach scheduled tasks.
+- No comment replier built.
+- Fix 6 (`explain-usage` link) is required. Don't touch "twix n masca files book".
+- Proposed MASKA change set: change display text, add `maska` beside `masca`, leave keys and slugs, change the Gate allow-list last.
 
 ## Assumptions to verify
-- Whether the n8n instance timezone is Bangkok. This was inferred from Morning Briefing running at 00:00 UTC.
-- Who disabled Post Performance Watch and Inspection on 21 Oct, and whether that was deliberate.
-- Follower counts (4,705 TikTok, 241 Instagram) date from 20 Oct.
-- The Google Docs credential error seen on 21 Oct in Free Book Machine may recur.
-- More scheduled tasks may exist beyond the pages already read.
+- The other n8n editor is Jay's Cowork or desktop chat (none of his cloud sessions touched v2).
+- Clip desk steps are my design; the original Editor and Publisher prompts weren't found.
+- Skills load in scheduled tasks (untested).
+- The Auditor default model is Opus.
 
 ## Dead ends (do not retry)
-- create_trigger with the connectors parameter: not available for this org.
-- Blotato returns no TikTok analytics or comments.
-- First update_trigger attempt was blocked by the classifier. It later succeeded after Jay's explicit OK.
+- `create_trigger` can't attach connectors; it needs the claude.ai UI.
+- Blotato can't read TikTok comments; Instagram BOOK comments are handled by Blotato DM automation `19454`.
+- `get_trigger` returned not found for the old Post Performance and Inspection tasks.
+- Restoring v2 by version would wipe the other editor's work.
+- `get_workflow_execution` with data and no node filter returns megabytes.
 
 ## Last request and whether it was answered
-"let's go". Answered:
-- Re-enabled the two jobs that had been switched off.
-- Filled the deck numbers.
-- Told Jay that 10,000 followers by 31 Oct is unreachable, that the sign-up funnel is slow (7 real sign-ups, none since 21 Oct), and to price the leads now: 2 want print, 3 want the book club.
+Jay asked for this brief. Before it, the Masca scan report was relayed and summarised. Awaiting his replies on the open items below.
 
 ## Next step
-1. Confirm Jay has added the Auditor's connectors.
-2. Check today's 08:47 Chief of Staff run, 09:14 Post Performance Watch and 09:41 Inspection runs, and the log doc 1cLyePU4KzNsJYXkxBhK7rRSApvQ6Y0C4ho_UnIkD4yc.
-3. Get Jay's author name and printed-copy price.
-4. Offer to fix the Reminders bug: a failed Telegram send still marks the reminder "Sent". Not yet approved.
+1. Get Jay's answers: "go MASKA fixes", "publish v2" (revert: republish `1c253831`), "Auditor to Sonnet".
+2. Confirm he pasted the Cowork steps (Clip desk connectors then enable, Chief of Staff connectors cut to 8, skill fixes).
+3. After the Clip desk has run once, start the 72-hour clock, then slow Health Check `nREyDHXe3L9JilLV` from 5 to 15 minutes, logging each change in `lean_changes`.
 
 ## Files changed this session
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/deck.json
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/cover.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/idea.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/books.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/audience.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/friends.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/honest.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/giveback.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/ask.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/contact.html
-- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/deck/project/slides/helps.html
+- /home/user/ajaxace/CLAUDE.md
+- /tmp/claude-0/-home-user-ajaxace/c83bc727-9c59-55a1-8e3a-42c87c33a035/scratchpad/skill-fixes.md
 
 ## Last user message (verbatim, cut at 1500 characters)
-Rtfsssfjjssstrszn   let's go
+FINISHED. I’m making no further changes to it.
+
+I made no edits in this session. The workflow’s history shows its last saved edit at 08:45 Thailand time today, which rewired the new reference-image setting nodes. A manual run right after that edit succeeded, and nothing has changed since.
