@@ -35,11 +35,12 @@ SCENES = [  # title, user text, hud?, reply bubble, chips[(label,right,color)], 
  ("Ask it anything", "How long do I roast a 2kg chicken?", False, "About 1 hr 45 min at 190°C (fan 170°C), then rest for 15 min.", [], "Check the juices run clear."),
 ]
 SCENES += [
- ("Quote still to send?", "What have I got to send today?", True, "Reminder: send the Evans quote.", [], "I can remind you. I don't send anything."),
+ ("Quote still to send?", "What have I got to send today?", True, "Reminder: send the Evans quote.", [], "Want me to remind you at 12:30?"),
  ("Where next?", "Where do I need to be next?", True, "Next: drop Jack at Oakfield Primary, 8:50.", [], "From your family calendar."),
 ]
 SCENES += [("From anywhere", "What time is my flight home?", True, "Saturday, 14:10. Faro to Manchester.", [], "From the family calendar.")]
-ACC = [CY, TL, CY, TL, CY, TL, CY, TL, CY, TL, CY]
+SCENES += [("Check your emails", "Any emails from school today?", "EMAIL CONNECTED", "2 new from Oakfield Primary:", [("Trip form", "Due Fri", CY), ("Parents' evening", "20 Nov", TL)], "Want a reminder for either?")]
+ACC = [CY, TL, CY, TL, CY, TL, CY, TL, CY, TL, CY, TL]
 
 def fib(n):
     i = np.arange(n) + 0.5; ph = np.arccos(1 - 2 * i / n); th = np.pi * (1 + 5 ** 0.5) * i
@@ -91,15 +92,29 @@ def tier_card(title, big, small, col, box=False):
 
 def draw_tiers(cv, lt, t):
     head(cv, "Choose how your family connects", None, lt, 54)
-    for i, (spr, ti) in enumerate([(tier_card("Wolf", "£69", "per person  ·  one-off price", CY), 0.5), (tier_card("Wolf Family", "£179", "mum, dad and one child  ·  one-off price", TL), 1.2),
+    for i, (spr, ti) in enumerate([(tier_card("Wolf", "£69", "AI, calendar and email checks  ·  one-off price", CY), 0.5), (tier_card("Wolf Family", "£179", "mum, dad and one child  ·  one-off price", TL), 1.2),
                                   (tier_card("Wolf Box", "COMING SOON", "Wolf at home. Details to follow.", OR, True), 1.9)]):
         a = eo((lt - ti) / 0.4); sp, pad = spr; paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 120, 330 + i * 400 - pad, alpha=a)
     s2, p2 = tsprite("Over 18 only. Under 16s need a parent's OK.", F(REG, 32), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1600, alpha=eo((lt - 2.4) / 0.4))
 
+@lru_cache(maxsize=None)
+def banner(title, sub, col):
+    w, h = 900, 210; im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, w - 1, h - 1), 36, fill=(10, 24, 40, 240), outline=col + (255,), width=4)
+    d.text((44, 38), title, font=F(BOLD, 52), fill=col + (255,)); d.text((44, 118), sub, font=F(REG, 38), fill=(215, 228, 250))
+    return glow(im, 14, col, 0.4)
+
+def draw_addons(cv, lt, t):
+    head(cv, "Make it yours: add-ons", None, lt, 62)
+    for i, (lab, col) in enumerate([("Google Drive", CY), ("OneDrive", TL), ("Send emails", CY), ("More to come", OR)]):
+        a = eo((lt - (0.4 + i * 0.35)) / 0.35); sp, pad, w, h = chip(lab, "ADD-ON", col); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 100, 330 + i * 120 - pad, alpha=a)
+    a = eo((lt - 2.2) / 0.4); sp, pad = banner("Family add-on", "Covers every connected Wolf.", OR); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 100, 880 - pad, alpha=a)
+    s2, p2 = tsprite("Add-ons are optional. Details to follow.", F(REG, 34), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1190, alpha=eo((lt - 3.0) / 0.4))
+
 def draw_trust(cv, lt, t):
-    for i, (txt, col, ti) in enumerate([("Finds options.", CY, 0.3), ("Reads your calendar.", TL, 1.0), ("Books nothing.", OR, 1.7)]):
-        a = eo((lt - ti) / 0.4); sp, pd_ = tsprite(txt, F(BOLD, 96), WH + (255,), col, 16); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 80, 640 + i * 190 - pd_, alpha=a)
-    s2, p2 = tsprite("You stay in control.", F(REG, 50), (205, 222, 250, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1330, alpha=eo((lt - 2.4) / 0.4))
+    for i, (txt, col, ti) in enumerate([("Finds options.", CY, 0.3), ("Reads your calendar.", TL, 0.9), ("Checks your emails.", CY, 1.5), ("Books nothing.", OR, 2.1)]):
+        a = eo((lt - ti) / 0.4); sp, pd_ = tsprite(txt, F(BOLD, 96), WH + (255,), col, 16); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 80, 560 + i * 170 - pd_, alpha=a)
+    s2, p2 = tsprite("You stay in control.", F(REG, 50), (205, 222, 250, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1330, alpha=eo((lt - 3.0) / 0.4))
 
 @lru_cache(maxsize=None)
 def photo_img(key):
@@ -231,7 +246,7 @@ def layout(i):
         sp, pad, w, h = spr; x = (PX + PW - 30 - w) if side == "r" else PX + 30
         els.append(dict(kind=kind, sp=sp, pad=pad, x=x, y=y, t=t, w=w, h=h)); y += h + gap
     add("user", bubble(user, "user"), "r", 0.30); dots_y = y; t = RS
-    if hasud: add("hud", hud("CALENDAR CONNECTED"), "l", t); t += 0.35
+    if hasud: add("hud", hud(hasud if isinstance(hasud, str) else "CALENDAR CONNECTED"), "l", t); t += 0.35
     add("bub", bubble(rep, "wolf"), "l", t); t += 0.25
     for lab, right, col in chips: add("chip", chip(lab, right, col), "l", t); t += 0.2
     add("note", bubble(note, "note"), "l", t + 0.1)
@@ -339,8 +354,9 @@ def timeline(name):
             ("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "dash", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash")]
         if hol: tl.append(("photo", "holiday", 3.0, "Miles from home. Still in the loop."))
         tl += [("scene", 10, SC_T, "holiday" if hol else None), ("globe", None, 5.5, None), ("photo", "couple", 3.0, "One family calendar. Anyone can ask."), ("scene", 1, SC_T, "couple")]
-        tl += [("scene", i, SC_T, None) for i in (0, 4, 2, 6, 3, 5, 7)] + [("trust", None, 5.0, None), ("tiers", None, 8.5, None), ("end", None, 6.5, None)]; return tl
+        tl += [("scene", i, SC_T, None) for i in (0, 4, 2, 6, 3, 11, 5, 7)] + [("trust", None, 5.6, None), ("tiers", None, 8.5, None), ("addons", None, 6.0, None), ("end", None, 6.5, None)]; return tl
     if name == "demo": return [("intro", None, INTRO_T, None)] + [("scene", i, SC_T, None) for i in range(8)] + [("end", None, END_DEMO, None)]
+    if name == "inbox": return [("scene", 11, SC_T, None), ("scene", 1, SC_T, None), ("end", None, 15.0 - 2 * SC_T, None)]
     if name == "dan": return [("photo", "dan", 3.2, "Forgot to send the quote?"), ("scene", 8, SC_T, "dan"), ("photo", "dan", 2.0, "Reminded. Back to work."), ("end", None, 15.0 - 3.2 - SC_T - 2.0, None)]
     if name == "mum": return [("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "dash", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash"), ("end", None, 15.0 - 5.2 - SC_T, None)]
     if name == "family": return [("photo", "couple", 3.0, "One family calendar. Anyone can ask."), ("scene", 1, SC_T, "couple"), ("end", None, 15.0 - 3.0 - SC_T, None)]
@@ -386,6 +402,7 @@ def frame(tl, t, fi):
     if kind == "intro": draw_intro(cv, lt, t)
     elif kind == "globe": draw_globe(cv, lt, t)
     elif kind == "tiers": draw_tiers(cv, lt, t)
+    elif kind == "addons": draw_addons(cv, lt, t)
     elif kind == "trust": draw_trust(cv, lt, t)
     elif kind == "photo": draw_photo(cv, idx, lt, sdur, extra)
     elif kind == "scene": draw_scene(cv, idx, lt, t)

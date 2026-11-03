@@ -22,3 +22,10 @@ Status: NOT approved. Nothing posted. This is a first pass, not legal advice.
 5. Example screens (Evans quote, Faro flight, Oakfield Primary) are invented sample data. They are labelled "Screens simulated".
 6. Removed on purpose: "No credits. No limits." (not provable).
 7. Pending from Jay: can Wolf send things, read folders, give traffic? Until answered, ads use reminder and calendar wording only.
+
+## Update from Jay (3 Nov 2026, later)
+- Standard package: use the AI and check emails (plus calendar). Works wherever the customer is in the world (Jay confirmed; still needs proof/wording before posting).
+- Wolf can also send things and read folders. These are NOT in the standard package. They are add-ons.
+- Add-ons: Google Drive, OneDrive, sending emails, more to come. Family add-on covers every connected unit.
+- Ads must show only the standard package unless the add-on is clearly labelled as an add-on. The add-ons card shows no prices.
+- Still to confirm before posting: which add-ons are live now vs planned, and their prices.
