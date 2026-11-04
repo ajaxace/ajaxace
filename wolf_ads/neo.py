@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Wolf NEO renderer: animated futuristic demo + 15s ads. Free tools only (PIL, numpy, ffmpeg).
 usage: neo.py NAME            (NAME = demo | ad1 | ad2 | ad3 | ad4)
        neo.py NAME --preview 0.5,2.0,4.0   (writes PNGs, no video)
@@ -10,9 +10,12 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 W, H, FPS = 1080, 1920, 30
 HERE = os.path.dirname(os.path.abspath(__file__))
-BOLD = "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"
-REG = "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"
-MONO = "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
+def _font(name, linux):
+    local = os.path.join(HERE, "fonts", name)  # bundled copy, works on Windows/Mac/Linux
+    return local if os.path.exists(local) else linux
+BOLD = _font("LiberationSans-Bold.ttf", "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf")
+REG = _font("LiberationSans-Regular.ttf", "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf")
+MONO = _font("DejaVuSansMono.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf")
 CY, TL, OR, WH, GRN = (46, 197, 255), (20, 224, 192), (252, 163, 17), (255, 255, 255), (60, 255, 140)
 PX, PY, PW, PHT = 110, 310, 860, 1000
 SC_T, RS, BEAT = 5.2, 1.45, 5.2 / 12
@@ -425,7 +428,7 @@ def main():
         for fi in range(a, b): p.stdin.write(frame(tl, fi / FPS, fi).tobytes())
         p.stdin.close(); p.wait(); return
     if "--parallel" in sys.argv:
-        synth(aud, total, tl); ps = [subprocess.Popen([sys.executable, "-I", os.path.abspath(__file__), name, "--chunk", str(k), "4"]) for k in range(4)]
+        synth(aud, total, tl); ps = [subprocess.Popen([sys.executable, os.path.abspath(__file__), name, "--chunk", str(k), "4"]) for k in range(4)]
         [q.wait() for q in ps]; lst = os.path.join(out, f"{name}_chunks.txt"); open(lst, "w").write("".join(f"file '{os.path.join(out, name + '_chunk' + str(k) + '.mp4')}'\n" for k in range(4)))
         subprocess.run(["ffmpeg", "-y", "-v", "error", "-f", "concat", "-safe", "0", "-i", lst, "-i", aud, "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-t", f"{total}", "-movflags", "+faststart", mp4], check=True); print("done", mp4, round(total, 1), "s"); return
     synth(aud, total, tl)
