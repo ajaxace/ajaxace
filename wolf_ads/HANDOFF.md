@@ -45,3 +45,9 @@ Add a call to action ("Watch the full video: link in bio"); resolve the age line
 
 ## Paste into the new session
 "Read wolf_ads/HANDOFF.md and ROADMAP.md on this branch. Continue the Wolf ads build exactly from there. Do not post or send anything. Ask me for the open answers listed in HANDOFF.md first."
+
+## Jay, 4 Nov 2026 (in chat): "AI box" due up and running within 1 week
+Stated hardware: 32 GB memory, 1 TB internal storage, 4 TB external storage, Ryzen chip.
+NOT known: exact Ryzen model, graphics card, whether this is the customer Wolf Box or Jay's own AI machine, what it does for customers, price, ship date to customers.
+Rule until Jay says otherwise: ads keep "Wolf Box: coming soon, concept". No specs or features on screen. These specs are internal notes only.
+If it is Jay's own machine: it could run image/video models locally and end the free-quota limits (depends on the graphics card). Check once the model is known.
