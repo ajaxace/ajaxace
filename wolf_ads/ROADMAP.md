@@ -1,4 +1,4 @@
-# Wolf roadmap: first idea to first sample email (4 Nov 2026)
+﻿# Wolf roadmap: first idea to first sample email (4 Nov 2026)
 
 Legend: [x] done, [~] part done, [ ] not done. (YOU) = needs Jay.
 
@@ -12,13 +12,13 @@ Legend: [x] done, [~] part done, [ ] not done. (YOU) = needs Jay.
 2 Tools
 - [x] 6 Hugging Face connector fixed (FLUX works)
 - [x] 7 Edit pipeline saved (wolf_ads/neo.py)
-- [ ] 8 Allow *.hf.space and huggingface.co (YOU)
+- [x] 8 hf.space and huggingface.co reachable from the Windows PC (no setting needed)
 
 3 Creative
-- [x] 9 AI people stills (7)
+- [x] 9 AI people stills (7) + 4 new in shots_v2 (3 more due after quota reset; dan2 and mumpark2 need fixes)
 - [x] 10 Short ads, draft (Dan, mum, family, inbox)
 - [x] 11 Long film, draft (1:54)
-- [ ] 12 Animated AI people (Wan clips not downloaded)
+- [~] 12 Animated AI people: Wan needs web URLs, free quota used up 4 Nov; retry after reset
 - [ ] 13 Glitch check in motion
 - [~] 14 Music: own track done; pick TikTok library sound at posting (YOU)
 
