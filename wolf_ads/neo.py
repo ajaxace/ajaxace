@@ -106,10 +106,11 @@ def banner(title, sub, col):
 
 def draw_addons(cv, lt, t):
     head(cv, "Make it yours: add-ons", None, lt, 62)
-    for i, (lab, col) in enumerate([("Google Drive", CY), ("OneDrive", TL), ("Send emails", CY), ("More to come", OR)]):
-        a = eo((lt - (0.4 + i * 0.35)) / 0.35); sp, pad, w, h = chip(lab, "ADD-ON", col); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 100, 330 + i * 120 - pad, alpha=a)
-    a = eo((lt - 2.2) / 0.4); sp, pad = banner("Family add-on", "Covers every connected Wolf.", OR); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 100, 880 - pad, alpha=a)
-    s2, p2 = tsprite("Add-ons are optional. Details to follow.", F(REG, 34), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1190, alpha=eo((lt - 3.0) / 0.4))
+    for i, (lab, price, col) in enumerate([("Google Drive", "£25", CY), ("OneDrive", "£25", TL), ("Send emails", "£30", CY), ("More to come", "Soon", OR)]):
+        a = eo((lt - (0.4 + i * 0.35)) / 0.35); sp, pad, w, h = chip(lab, price, col); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 100, 300 + i * 118 - pad, alpha=a)
+    a = eo((lt - 2.0) / 0.4); sp, pad = banner("Buy 2, get 1 free", "Same type only. Three £25 add-ons for £50.", TL); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 100, 830 - pad, alpha=a)
+    a = eo((lt - 2.8) / 0.4); sp, pad = banner("Family add-on", "Covers every connected Wolf. Details to follow.", OR); paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 100, 1090 - pad, alpha=a)
+    s2, p2 = tsprite("Add-ons are optional. Prices are one-off.", F(REG, 34), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1350, alpha=eo((lt - 3.4) / 0.4))
 
 def draw_trust(cv, lt, t):
     for i, (txt, col, ti) in enumerate([("Finds options.", CY, 0.3), ("Reads your calendar.", TL, 0.9), ("Checks your emails.", CY, 1.5), ("Books nothing.", OR, 2.1)]):
@@ -354,7 +355,7 @@ def timeline(name):
             ("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "mumpark", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash")]
         if hol: tl.append(("photo", "holiday", 3.0, "Miles from home. Still in the loop."))
         tl += [("scene", 10, SC_T, "holiday" if hol else None), ("globe", None, 5.5, None), ("photo", "couple", 3.0, "One family calendar. Anyone can ask."), ("scene", 1, SC_T, "couple")]
-        tl += [("scene", i, SC_T, None) for i in (0, 4, 2, 6, 3, 11, 5, 7)] + [("trust", None, 5.6, None), ("tiers", None, 8.5, None), ("addons", None, 6.0, None), ("end", None, 6.5, None)]; return tl
+        tl += [("scene", i, SC_T, None) for i in (0, 4, 2, 6, 3, 11, 5, 7)] + [("trust", None, 5.6, None), ("tiers", None, 8.5, None), ("addons", None, 7.0, None), ("end", None, 6.5, None)]; return tl
     if name == "demo": return [("intro", None, INTRO_T, None)] + [("scene", i, SC_T, None) for i in range(8)] + [("end", None, END_DEMO, None)]
     if name == "inbox": return [("scene", 11, SC_T, None), ("scene", 1, SC_T, None), ("end", None, 15.0 - 2 * SC_T, None)]
     if name == "dan": return [("photo", "dan", 3.2, "Forgot to send the quote?"), ("scene", 8, SC_T, "dan"), ("photo", "dan", 2.0, "Reminded. Back to work."), ("end", None, 15.0 - 3.2 - SC_T - 2.0, None)]

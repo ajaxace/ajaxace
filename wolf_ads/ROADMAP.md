@@ -6,7 +6,7 @@ Legend: [x] done, [~] part done, [ ] not done. (YOU) = needs Jay.
 - [x] 1 Wolf logo (wolf_mark_v4 on Drive)
 - [x] 2 Product and standard package (AI, calendar, email checks)
 - [~] 3 Prices 69 / 179 one-off (YOU confirm)
-- [ ] 4 Add-ons and their prices (YOU)
+- [~] 4 Add-ons: Google Drive and OneDrive £25, Send emails £30, buy 2 same type get 1 free; family add-on price still open (YOU)
 - [~] 5 Wolf Box concept, no spec or photo (YOU)
 
 2 Tools
@@ -40,4 +40,4 @@ Legend: [x] done, [~] part done, [ ] not done. (YOU) = needs Jay.
 - [ ] 25 Post with AI label and TikTok sound (YOU)
 - [ ] 26 First click: demo email sent (YOU)
 
-Score: 10 done, 5 part done, 11 not done.
+Score: 10 done, 6 part done, 10 not done.

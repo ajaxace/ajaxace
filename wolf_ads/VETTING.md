@@ -29,3 +29,9 @@ Status: NOT approved. Nothing posted. This is a first pass, not legal advice.
 - Add-ons: Google Drive, OneDrive, sending emails, more to come. Family add-on covers every connected unit.
 - Ads must show only the standard package unless the add-on is clearly labelled as an add-on. The add-ons card shows no prices.
 - Still to confirm before posting: which add-ons are live now vs planned, and their prices.
+
+## Add-on pricing (Jay, 4 Nov 2026)
+- Google Drive and OneDrive: £25 each. Send emails: £30. (Grouping is my recommendation, Jay approved.)
+- Buy two of the same type, get a third of that type free. Three £25 add-ons for £50.
+- Family add-on covers every connected Wolf; price not set. Shown as "Details to follow".
+- Prices on screen are one-off. CAP "free" rules: the two paid items must be at their normal price; state the arithmetic plainly. Confirm add-ons are not recurring.
