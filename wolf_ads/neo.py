@@ -351,14 +351,14 @@ def glitch(rgb, lt, seed):
 def timeline(name):
     if name == "long":
         hol = os.path.exists(os.path.join(HERE, "shots", "holiday.png")); tl = [("photo", "dan", 3.2, "Forgot to send the quote?"), ("scene", 8, SC_T, "dan"), ("photo", "dan", 2.0, "Reminded. Back to work."), ("intro", None, INTRO_T, None),
-            ("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "dash", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash")]
+            ("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "mumpark", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash")]
         if hol: tl.append(("photo", "holiday", 3.0, "Miles from home. Still in the loop."))
         tl += [("scene", 10, SC_T, "holiday" if hol else None), ("globe", None, 5.5, None), ("photo", "couple", 3.0, "One family calendar. Anyone can ask."), ("scene", 1, SC_T, "couple")]
         tl += [("scene", i, SC_T, None) for i in (0, 4, 2, 6, 3, 11, 5, 7)] + [("trust", None, 5.6, None), ("tiers", None, 8.5, None), ("addons", None, 6.0, None), ("end", None, 6.5, None)]; return tl
     if name == "demo": return [("intro", None, INTRO_T, None)] + [("scene", i, SC_T, None) for i in range(8)] + [("end", None, END_DEMO, None)]
     if name == "inbox": return [("scene", 11, SC_T, None), ("scene", 1, SC_T, None), ("end", None, 15.0 - 2 * SC_T, None)]
     if name == "dan": return [("photo", "dan", 3.2, "Forgot to send the quote?"), ("scene", 8, SC_T, "dan"), ("photo", "dan", 2.0, "Reminded. Back to work."), ("end", None, 15.0 - 3.2 - SC_T - 2.0, None)]
-    if name == "mum": return [("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "dash", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash"), ("end", None, 15.0 - 5.2 - SC_T, None)]
+    if name == "mum": return [("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "mumpark", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash"), ("end", None, 15.0 - 5.2 - SC_T, None)]
     if name == "family": return [("photo", "couple", 3.0, "One family calendar. Anyone can ask."), ("scene", 1, SC_T, "couple"), ("end", None, 15.0 - 3.0 - SC_T, None)]
     pairs = {"ad1": (0, 1), "ad2": (2, 6), "ad3": (3, 4), "ad4": (5, 7)}[name]
     return [("scene", pairs[0], SC_T, None), ("scene", pairs[1], SC_T, None), ("end", None, 15.0 - 2 * SC_T, None)]
