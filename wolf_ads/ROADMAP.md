@@ -17,7 +17,8 @@ Legend: [x] done, [~] part done, [ ] not done. (YOU) = needs Jay.
 3 Creative
 - [x] 9 AI people stills (7) + 4 new in shots_v2 (3 more due after quota reset; dan2 and mumpark2 need fixes)
 - [x] 10 Short ads, draft (Dan, mum, family, inbox)
-- [x] 11 Long film, draft (1:54)
+- [x] 11 Long film, draft (1:55, locked prices)
+- [~] 11b Native-style paid-ad cuts (native_dan, native_mum): built; need Jay's real screen recording (shots/screen_8.mp4, screen_9.mp4)
 - [~] 12 Animated AI people: Wan needs web URLs, free quota used up 4 Nov; retry after reset
 - [ ] 13 Glitch check in motion
 - [~] 14 Music: own track done; pick TikTok library sound at posting (YOU)

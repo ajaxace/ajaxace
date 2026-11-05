@@ -57,3 +57,11 @@ If it is Jay's own machine: it could run image/video models locally and end the 
 - anthropic-skills:wolf-market-intel: locked facts, rivals (Nori, Nuet, Cozi, Skylight, Jam), positioning. Never name rivals. Paid ads run on Facebook and Instagram; TikTok is for followers and reach. Native style: handheld phone, real-looking phone screens, real people, hook in 3 seconds, no cartoons or studio look. Only show photo-to-calendar if it works; ask Jay for a real screen recording. Nuet already does school email and flyer scanning, so do not claim novelty.
 - anthropic-skills:wolf-vetting-gate: 12 checks, PASS/FIX/BLOCK. Result so far is in VETTING_GATE.md. Paid ads are BLOCKED until a real screen recording and native-style cuts exist.
 - The neon look is for the long brand film; paid ads need the native look. Ask Jay which he wants for which.
+
+
+## Native-style paid-ad cuts (added 5 Nov, cloud session)
+- `python3 -I wolf_ads/neo.py native_dan` and `native_mum` render 15s native cuts: handheld shake on the AI photo, outlined captions, a clean light chat screen (like a real messaging app), plain end card with prices and the button "Watch the full video: link in bio", soft music. No neon, grid or HUD.
+- REAL SCREEN RECORDING SLOT: drop a 1080x1920 (or any 9:16) recording of Wolf at wolf_ads/shots/screen_8.mp4 (Dan scene) or screen_9.mp4 (mum scene). neo.py then uses it in place of the simulated screen automatically. Remove "Screens simulated" wording if the recording is real and the screen is not simulated.
+- The link in the button is a placeholder: set the real link or bio wording before use.
+- Age line on the end card still conflicts ("Over 18 only" vs "Under 16s need a parent's OK"): Jay must decide.
+- The Windows PC session can animate shots with Wan (hf.space is reachable there); the cloud box cannot download them.

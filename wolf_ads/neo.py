@@ -353,7 +353,115 @@ def glitch(rgb, lt, seed):
     return out
 
 # ---------------- timeline + audio ----------------
+# ---------------- native style (for paid ads): handheld, real-looking phone screen, no neon ----------------
+NAVY2 = (14, 24, 48)
+DARK = (20, 28, 45, 255)
+NCOL = {CY: (20, 110, 190), TL: (10, 150, 130), OR: (200, 120, 0)}
+
+@lru_cache(maxsize=None)
+def ncaption(text):
+    d0 = ImageDraw.Draw(Image.new("RGBA", (1, 1))); f = F(BOLD, 66); lines = wrap(d0, text, f, 900); lh = 82
+    h = lh * len(lines) + 30; im = Image.new("RGBA", (W, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    for i, l in enumerate(lines): d.text((W / 2, 15 + i * lh), l, font=f, fill=(255, 255, 255, 255), anchor="ma", stroke_width=7, stroke_fill=(0, 0, 0, 255))
+    return im, h
+
+def nphoto(cv, key, lt, dur, caption):
+    z = 1.07 + 0.03 * (lt / dur); w = W / z; h = H / z
+    dx = 16 * math.sin(lt * 2.3) + 8 * math.sin(lt * 5.1 + 1); dy = 12 * math.sin(lt * 1.9 + 2) + 6 * math.sin(lt * 4.3)
+    x0 = min(max((W - w) / 2 + dx, 0), W - w); y0 = min(max((H - h) / 2 + dy, 0), H - h)
+    cv.paste(photo_img(key).crop((int(x0), int(y0), int(x0 + w), int(y0 + h))).resize((W, H), Image.BILINEAR).convert("RGBA"), (0, 0))
+    a = eo((lt - 0.15) / 0.25); sp, hh = ncaption(caption); y = 1130
+    paste(cv, sp, 0, y + (1 - a) * 24, alpha=a); lab = ailabel(); paste(cv, lab, W / 2 - lab.width / 2, y + hh + 14, alpha=a)
+
+@lru_cache(maxsize=None)
+def nbub(text, kind):
+    d0 = ImageDraw.Draw(Image.new("RGBA", (1, 1))); f = F(BOLD, 46) if kind == "user" else (F(REG, 38) if kind == "note" else F(REG, 46))
+    lines = wrap(d0, text, f, 760); lh = int(f.size * 1.35); w = int(max(d0.textlength(l, font=f) for l in lines)) + 64; h = lh * len(lines) + 44
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    if kind == "user": d.rounded_rectangle((0, 0, w - 1, h - 1), 40, fill=OR + (255,)); col = DARK
+    elif kind == "note": d.rounded_rectangle((0, 0, w - 1, h - 1), 32, fill=(224, 244, 240, 255)); col = (12, 90, 80, 255)
+    else: d.rounded_rectangle((0, 0, w - 1, h - 1), 40, fill=(255, 255, 255, 255), outline=(214, 219, 230, 255), width=2); col = DARK
+    for i, l in enumerate(lines): d.text((32, 22 + i * lh), l, font=f, fill=col)
+    return im, w, h
+
+@lru_cache(maxsize=None)
+def nchip(label, right, color):
+    w, h = 920, 104; im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im); c = NCOL.get(color, (20, 110, 190))
+    d.rounded_rectangle((0, 0, w - 1, h - 1), 30, fill=(255, 255, 255, 255), outline=(214, 219, 230, 255), width=2)
+    d.ellipse((30, 38, 58, 66), fill=c + (255,)); d.text((84, 52), label, font=F(BOLD, 42), fill=DARK, anchor="lm"); d.text((w - 34, 52), right, font=F(MONO, 40), fill=c + (255,), anchor="rm")
+    return im, w, h
+
+@lru_cache(maxsize=None)
+def nhud(text):
+    d0 = ImageDraw.Draw(Image.new("RGBA", (1, 1))); f = F(MONO, 30); w = int(d0.textlength(text, font=f)) + 90; h = 64
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
+    d.rounded_rectangle((0, 0, w - 1, h - 1), 32, fill=(232, 236, 244, 255)); d.ellipse((26, 22, 46, 42), fill=(40, 190, 110, 255)); d.text((62, 32), text, font=f, fill=(60, 70, 90, 255), anchor="lm")
+    return im, w, h
+
+@lru_cache(maxsize=None)
+def nlayout(i):
+    title, user, hasud, rep, chips, note = SCENES[i]; els = []; y = 330; gap = 24
+    def add(kind, spr, side, t):
+        nonlocal y
+        sp, w, h = spr; x = (W - 50 - w) if side == "r" else 50
+        els.append(dict(kind=kind, sp=sp, x=x, y=y, t=t, w=w, h=h)); y += h + gap
+    add("user", nbub(user, "user"), "r", 0.30); dots_y = y; t = RS
+    if hasud: add("hud", nhud((hasud if isinstance(hasud, str) else "CALENDAR CONNECTED").title()), "l", t); t += 0.35
+    add("bub", nbub(rep, "wolf"), "l", t); t += 0.25
+    for lab, right, col in chips: add("chip", nchip(lab, right, col), "l", t); t += 0.2
+    add("note", nbub(note, "note"), "l", t + 0.1)
+    return els, dots_y
+
+def nscreen(cv, i, lt):
+    d = ImageDraw.Draw(cv); d.rectangle((0, 0, W, H), fill=(244, 246, 250, 255))
+    d.text((60, 58), "9:41", font=F(BOLD, 40), fill=DARK, anchor="lm"); d.rounded_rectangle((W - 150, 42, W - 70, 74), 9, outline=DARK, width=3); d.rectangle((W - 146, 46, W - 104, 70), fill=DARK)
+    d.rectangle((0, 100, W, 250), fill=(255, 255, 255, 255)); d.line((0, 250, W, 250), fill=(222, 226, 236, 255), width=2)
+    m = LOGO.resize((96, 96), Image.LANCZOS); cv.paste(m, (50, 126), m); d = ImageDraw.Draw(cv)
+    d.text((170, 150), "Wolf", font=F(BOLD, 48), fill=DARK); d.text((170, 206), "Family assistant", font=F(REG, 30), fill=(110, 120, 140, 255))
+    els, dots_y = nlayout(i)
+    if 0.9 < lt < RS + 0.05:
+        a = eo((lt - 0.9) / 0.15); pill = Image.new("RGBA", (190, 84), (0, 0, 0, 0)); ImageDraw.Draw(pill).rounded_rectangle((0, 0, 189, 83), 40, fill=(255, 255, 255, 255), outline=(214, 219, 230, 255), width=2)
+        paste(cv, pill, 50, dots_y, alpha=a); d = ImageDraw.Draw(cv)
+        for k in range(3):
+            b = 0.5 + 0.5 * math.sin(lt * 10 - k * 0.9); cx = 50 + 54 + k * 42; cy = dots_y + 42 - 6 * b; g = int(190 - 70 * b); d.ellipse((cx - 10, cy - 10, cx + 10, cy + 10), fill=(g, g, g + 20, 255))
+    for e in els:
+        a = eo((lt - e["t"]) / 0.25)
+        if a > 0: paste(cv, e["sp"], e["x"], e["y"] + (1 - a) * 30, alpha=a)
+    d = ImageDraw.Draw(cv); d.text((W / 2, 1630), "Screens simulated", font=F(REG, 28), fill=(130, 138, 155, 255), anchor="mm")
+    d.rounded_rectangle((40, 1690, W - 40, 1790), 50, fill=(255, 255, 255, 255), outline=(214, 219, 230, 255), width=2); d.text((90, 1740), "Message Wolf", font=F(REG, 38), fill=(150, 158, 175, 255), anchor="lm")
+
+_clips = {}
+def nclip(cv, path, lt):
+    import tempfile, glob
+    if path not in _clips:
+        d = tempfile.mkdtemp(prefix="wolfclip_")
+        subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", path, "-vf", f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS}", os.path.join(d, "%05d.png")], check=True)
+        _clips[path] = sorted(glob.glob(os.path.join(d, "*.png")))
+    fr = _clips[path]; cv.paste(Image.open(fr[min(int(lt * FPS), len(fr) - 1)]).convert("RGBA"), (0, 0))
+
+def nend(cv, lt):
+    d = ImageDraw.Draw(cv); d.rectangle((0, 0, W, H), fill=NAVY2 + (255,))
+    paste(cv, LOGO.resize((250, 250), Image.LANCZOS), 415, 200, alpha=eo(lt / 0.3))
+    for text, size, bold, y, col, ti in [("Wolf", 120, True, 520, WH, 0.1), ("Your family's own AI assistant.", 46, True, 690, (215, 228, 250), 0.2), ("£69 per person.", 84, True, 770, OR, 0.3),
+                                         ("£179 for mum, dad and one child.", 40, False, 900, (225, 232, 248), 0.4), ("£49 per extra child. Pay once. No yearly fee.", 38, True, 956, WH, 0.4)]:
+        sp, _ = tsprite(text, F(BOLD if bold else REG, size), col + (255,)); a = eo((lt - ti) / 0.3); paste(cv, sp, W / 2 - sp.width / 2, y + (1 - a) * 20, alpha=a)
+    a = eo((lt - 0.6) / 0.3); btn = Image.new("RGBA", (860, 112), (0, 0, 0, 0)); bd = ImageDraw.Draw(btn)
+    bd.rounded_rectangle((0, 0, 859, 111), 56, fill=OR + (255,)); bd.text((430, 56), "Watch the full video: link in bio", font=F(BOLD, 42), fill=NAVY2 + (255,), anchor="mm"); paste(cv, btn, 110, 1070 + (1 - a) * 20, alpha=a)
+    for text, size, y, ti in [("Over 18 only. Under 16s need a parent's OK.", 32, 1260, 0.9), ("Made and shipped by a third party.", 30, 1320, 1.0), ("Jay does not personally do the work.", 30, 1362, 1.0), ("AI-generated dramatisation. Screens simulated.", 28, 1440, 1.1)]:
+        sp, _ = tsprite(text, F(REG, size), (170, 185, 215, 255)); paste(cv, sp, W / 2 - sp.width / 2, y, alpha=eo((lt - ti) / 0.3))
+
+def _scr(i):
+    f = os.path.join(HERE, "shots", f"screen_{i}.mp4")
+    return ("nclip", f, SC_T, None) if os.path.exists(f) else ("nscreen", i, SC_T, None)
+
+NATIVE_KINDS = ("nphoto", "nscreen", "nclip", "nend")
+
 def timeline(name):
+    if name == "native_dan": return [("nphoto", "dan", 3.0, "Forgot to send the quote?"), _scr(8), ("nphoto", "dan", 2.0, "Reminder set. Back to work."), ("nend", None, 15.0 - 3.0 - SC_T - 2.0, None)]
+    if name == "native_mum": return [("nphoto", "mirror", 2.6, "First drop-off done. What's next?"), ("nphoto", "mumpark", 2.4, "Parked. One quick check."), _scr(9), ("nend", None, 15.0 - 5.0 - SC_T, None)]
+    return _timeline_neon(name)
+
+def _timeline_neon(name):
     if name == "long":
         hol = os.path.exists(os.path.join(HERE, "shots", "holiday.png")); tl = [("photo", "dan", 3.2, "Forgot to send the quote?"), ("scene", 8, SC_T, "dan"), ("photo", "dan", 2.0, "Reminded. Back to work."), ("intro", None, INTRO_T, None),
             ("photo", "mirror", 2.8, "First drop-off done. What's next?"), ("photo", "mumpark", 2.4, "A quick check while parked."), ("scene", 9, SC_T, "dash")]
@@ -369,20 +477,20 @@ def timeline(name):
     return [("scene", pairs[0], SC_T, None), ("scene", pairs[1], SC_T, None), ("end", None, 15.0 - 2 * SC_T, None)]
 
 def synth(path, total, tl):
-    sr = 44100; n = int(sr * total); t = np.arange(n) / sr; sig = np.zeros(n)
-    pump = 1 - 0.55 * np.exp(-(t % BEAT) * 9)
+    sr = 44100; n = int(sr * total); t = np.arange(n) / sr; sig = np.zeros(n); native = tl[0][0] in NATIVE_KINDS
+    pump = np.ones_like(t) * 0.6 if native else 1 - 0.55 * np.exp(-(t % BEAT) * 9)
     roots = [55.0, 43.65, 65.41, 49.0]; chords = [[220, 261.6, 329.6], [174.6, 220, 261.6], [261.6, 329.6, 392], [196, 246.9, 293.7]]
     bar = ((t // (4 * BEAT)).astype(int)) % 4
     for ci in range(4):
         m = np.convolve((bar == ci).astype(float), np.ones(3000) / 3000, mode="same")
         sig += pump * m * (np.sin(2 * np.pi * roots[ci] * t) * 0.28 + sum(np.sin(2 * np.pi * f * t) * 0.045 * (0.6 + 0.4 * np.sin(t * 0.8)) for f in chords[ci]))
     step = BEAT / 4; k = 0
-    while k * step < total:                                       # 16th arp
+    while (not native) and k * step < total:                      # 16th arp
         t0 = k * step; ch = chords[int(t0 // (4 * BEAT)) % 4]; f = ch[[0, 1, 2, 1, 0, 2, 1, 2][k % 8]] * (2 if (k // 8) % 2 else 1)
         i0 = int(sr * t0); L = int(sr * 0.2); tt = np.arange(L) / sr
         if i0 + L < n: sig[i0:i0 + L] += (np.sin(2 * np.pi * f * tt) + 0.4 * np.sin(2 * np.pi * 2 * f * tt) + 0.2 * np.sin(2 * np.pi * 3 * f * tt)) * np.exp(-tt * 18) * 0.045
         k += 1
-    for b in range(int(total / BEAT) + 1):                        # kick + hats
+    for b in range(0 if native else int(total / BEAT) + 1):      # kick + hats
         i0 = int(sr * b * BEAT); L = int(sr * 0.22); tt = np.arange(L) / sr
         if i0 + L < n: sig[i0:i0 + L] += np.sin(2 * np.pi * (45 * tt + 75 * (1 - np.exp(-tt * 30)) / 30 * 0 + 120 * np.exp(-tt * 25) / 25 * 6)) * np.exp(-tt * 14) * 0.45
         j0 = int(sr * (b + 0.5) * BEAT); Lh = int(sr * 0.05)
@@ -391,9 +499,9 @@ def synth(path, total, tl):
     wt = np.arange(int(sr * 0.4)) / sr; whoosh = (np.sin(2 * np.pi * (180 * wt + 2200 * wt ** 2 / 0.8)) * 0.5 + np.random.RandomState(3).randn(len(wt)) * 0.25) * np.sin(np.pi * wt / 0.4) ** 2 * 0.22
     cur = 0.0
     for kind, idx, dur, *_ in tl:
-        for s_, sp in ((cur, whoosh),) + (((cur + RS, ping),) if kind == "scene" else ()):
+        for s_, sp in ((cur, whoosh),) + (((cur + RS, ping),) if kind in ("scene", "nscreen") else ()):
             i0 = int(sr * s_)
-            if i0 < n: sig[i0:i0 + len(sp)] += sp[:n - i0]
+            if i0 < n: sig[i0:i0 + len(sp)] += sp[:n - i0] * (0.3 if (native and s_ == cur) else 1.0)
         cur += dur
     sig *= np.clip(np.minimum(t / 0.4, (total - t) / 1.6), 0, 1); sig = np.tanh(sig * 1.3); sig = sig / np.abs(sig).max() * 0.85
     with wave.open(path, "wb") as w: w.setnchannels(1); w.setsampwidth(2); w.setframerate(sr); w.writeframes((sig * 32767).astype(np.int16).tobytes())
@@ -403,7 +511,15 @@ def frame(tl, t, fi):
     for s in tl:
         if t < cur + s[2]: seg = s; lt = t - cur; break
         cur += s[2]
-    kind, idx, sdur, extra = seg; cv = background(t, extra if kind == "scene" else None)
+    kind, idx, sdur, extra = seg
+    if kind in NATIVE_KINDS:
+        cv = Image.new("RGBA", (W, H), (255, 255, 255, 255))
+        if kind == "nphoto": nphoto(cv, idx, lt, sdur, extra)
+        elif kind == "nscreen": nscreen(cv, idx, lt)
+        elif kind == "nclip": nclip(cv, idx, lt)
+        else: nend(cv, lt)
+        return np.asarray(cv.convert("RGB"))
+    cv = background(t, extra if kind == "scene" else None)
     if kind == "intro": draw_intro(cv, lt, t)
     elif kind == "globe": draw_globe(cv, lt, t)
     elif kind == "tiers": draw_tiers(cv, lt, t)
