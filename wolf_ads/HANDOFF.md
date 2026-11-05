@@ -9,7 +9,8 @@ Make Wolf adverts (short 15s hooks plus one ~2 min film) and a sample email, vet
 ## What Wolf is (Jay's words, treat as the only verified product facts)
 - Standard package: use the AI, calendar, and check emails. Works wherever the customer is in the world (Jay confirmed; wording and limits still to confirm).
 - Wolf can also send things and read folders, but those are ADD-ONS, not standard.
-- Prices (one-off): 69 GBP per person; 179 GBP for mum, dad and one child. Add-ons: Google Drive 25, OneDrive 25, Send emails 30 GBP. Buy two of the same type, get a third of that type free. Family add-on covers every connected Wolf; price not set. Add-ons not live/priced everywhere: confirm which are live.
+- LOCKED prices (wolf-market-intel skill, 4 Nov): one-off 69 GBP per person; 179 GBP mum, dad and one child; 49 GBP per extra child. No yearly fee. Safe line: pay once, no yearly fee. Never say Wolf is cheaper than a rival.
+- Chat-agreed add-on prices (NOT in the locked list, confirm with Jay): Add-ons: Google Drive 25, OneDrive 25, Send emails 30 GBP. Buy two of the same type, get a third of that type free. Family add-on covers every connected Wolf; price not set. Add-ons not live/priced everywhere: confirm which are live.
 - Wolf Box: "coming soon" concept only. No spec or photo. Never invent features.
 - Disclaimers always: Over 18 only. Under 16s need a parent's OK (conflicts, see open questions). Made and shipped by a third party. Jay does not personally do the work. AI-generated dramatisation. Screens simulated.
 - Do NOT claim: "No credits. No limits." (unprovable), invoicing/pricing jobs, live traffic, folder access or sending as standard.
@@ -51,3 +52,8 @@ Stated hardware: 32 GB memory, 1 TB internal storage, 4 TB external storage, Ryz
 NOT known: exact Ryzen model, graphics card, whether this is the customer Wolf Box or Jay's own AI machine, what it does for customers, price, ship date to customers.
 Rule until Jay says otherwise: ads keep "Wolf Box: coming soon, concept". No specs or features on screen. These specs are internal notes only.
 If it is Jay's own machine: it could run image/video models locally and end the free-quota limits (depends on the graphics card). Check once the model is known.
+
+## Added 5 Nov: Jay's own skills now exist (use them)
+- anthropic-skills:wolf-market-intel: locked facts, rivals (Nori, Nuet, Cozi, Skylight, Jam), positioning. Never name rivals. Paid ads run on Facebook and Instagram; TikTok is for followers and reach. Native style: handheld phone, real-looking phone screens, real people, hook in 3 seconds, no cartoons or studio look. Only show photo-to-calendar if it works; ask Jay for a real screen recording. Nuet already does school email and flyer scanning, so do not claim novelty.
+- anthropic-skills:wolf-vetting-gate: 12 checks, PASS/FIX/BLOCK. Result so far is in VETTING_GATE.md. Paid ads are BLOCKED until a real screen recording and native-style cuts exist.
+- The neon look is for the long brand film; paid ads need the native look. Ask Jay which he wants for which.

@@ -95,10 +95,11 @@ def tier_card(title, big, small, col, box=False):
 
 def draw_tiers(cv, lt, t):
     head(cv, "Choose how your family connects", None, lt, 54)
-    for i, (spr, ti) in enumerate([(tier_card("Wolf", "£69", "AI, calendar and email checks  ·  one-off price", CY), 0.5), (tier_card("Wolf Family", "£179", "mum, dad and one child  ·  one-off price", TL), 1.2),
+    for i, (spr, ti) in enumerate([(tier_card("Wolf", "£69", "AI, calendar and email checks  ·  pay once", CY), 0.5), (tier_card("Wolf Family", "£179", "mum, dad and one child  ·  extra child £49", TL), 1.2),
                                   (tier_card("Wolf Box", "COMING SOON", "Wolf at home. Details to follow.", OR, True), 1.9)]):
         a = eo((lt - ti) / 0.4); sp, pad = spr; paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 120, 330 + i * 400 - pad, alpha=a)
-    s2, p2 = tsprite("Over 18 only. Under 16s need a parent's OK.", F(REG, 32), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1600, alpha=eo((lt - 2.4) / 0.4))
+    s3, p3 = tsprite("Pay once. No yearly fee.", F(BOLD, 40), WH + (255,), TL, 10); paste(cv, s3, W / 2 - s3.width / 2, 1540, alpha=eo((lt - 2.4) / 0.4))
+    s2, p2 = tsprite("Over 18 only. Under 16s need a parent's OK.", F(REG, 32), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1620, alpha=eo((lt - 2.8) / 0.4))
 
 @lru_cache(maxsize=None)
 def banner(title, sub, col):
@@ -327,7 +328,7 @@ def end_sprites():
     T("Wolf", F(BOLD, 130), WH + (255,), 520, 0.15, CY)
     T("Your family's own AI assistant,", F(BOLD, 46), (215, 228, 250, 255), 690, 0.4)
     L.append(("PRICE", 765, 0.65))
-    T("£69 per person, or £179 for mum, dad", F(REG, 36), (225, 232, 248, 255), 900, 0.95); T("and one child. One-off price.", F(REG, 36), (225, 232, 248, 255), 946, 0.95)
+    T("£179 for mum, dad and one child.", F(REG, 38), (225, 232, 248, 255), 900, 0.95); T("£49 per extra child. Pay once. No yearly fee.", F(BOLD, 36), (225, 232, 248, 255), 950, 0.95)
     T("Finds options. Books nothing.", F(BOLD, 40), WH + (255,), 1040, 1.2, TL)
     T("Over 18 only. Under 16s need a parent's OK.", F(REG, 33), (225, 232, 248, 255), 1150, 1.5)
     T("Made and shipped by a third party.", F(REG, 31), (160, 178, 208, 255), 1230, 1.7); T("Jay does not personally do the work.", F(REG, 31), (160, 178, 208, 255), 1274, 1.7)
@@ -341,7 +342,7 @@ def draw_end(cv, lt, t):
     for sp, y, ti in end_sprites():
         a = eo((lt - ti) / 0.35)
         if sp == "PRICE":
-            pulse = 0.75 + 0.25 * math.sin(t * 4); s2, p2 = tsprite("from £69.", F(BOLD, 92), OR + (255,), OR, 20); paste(cv, s2, W / 2 - s2.width / 2, y - p2 + (1 - a) * 30, alpha=a * (0.8 + 0.2 * pulse))
+            pulse = 0.75 + 0.25 * math.sin(t * 4); s2, p2 = tsprite("£69 per person.", F(BOLD, 88), OR + (255,), OR, 20); paste(cv, s2, W / 2 - s2.width / 2, y - p2 + (1 - a) * 30, alpha=a * (0.8 + 0.2 * pulse))
         else: paste(cv, sp, W / 2 - sp.width / 2, y + (1 - a) * 30, alpha=a)
 
 def glitch(rgb, lt, seed):
