@@ -451,8 +451,10 @@ def nend(cv, lt):
         sp, _ = tsprite(text, F(REG, size), (170, 185, 215, 255)); paste(cv, sp, W / 2 - sp.width / 2, y, alpha=eo((lt - ti) / 0.3))
 
 def _scr(i):
-    f = os.path.join(HERE, "shots", f"screen_{i}.mp4")
-    return ("nclip", f, SC_T, None) if os.path.exists(f) else ("nscreen", i, SC_T, None)
+    for ext in ("mp4", "mov", "webm", "mkv"):
+        f = os.path.join(HERE, "shots", f"screen_{i}.{ext}")
+        if os.path.exists(f): return ("nclip", f, SC_T, None)
+    return ("nscreen", i, SC_T, None)
 
 NATIVE_KINDS = ("nphoto", "nscreen", "nclip", "nend")
 

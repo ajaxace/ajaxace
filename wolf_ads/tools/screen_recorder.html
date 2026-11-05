@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wolf screen recorder</title>
+<style>
+ body{margin:0;font-family:system-ui,Segoe UI,Arial,sans-serif;background:#0b1224;color:#e8eefc;padding:24px;max-width:760px;margin-inline:auto}
+ h1{font-size:26px;margin:0 0 6px} p{color:#b8c6e6;line-height:1.5}
+ select,button{font:inherit;padding:12px 18px;border-radius:12px;border:0;margin:6px 8px 6px 0}
+ button{background:#fca311;color:#14213d;font-weight:700;cursor:pointer} button:disabled{opacity:.4;cursor:default}
+ #stop{background:#ff5a5f;color:#fff} video{width:100%;max-height:60vh;background:#000;border-radius:14px;margin-top:12px}
+ .note{background:#14213d;border-radius:12px;padding:12px 16px;margin-top:14px} #msg{margin-top:10px;color:#7ee2b8}
+</style></head><body>
+<h1>Wolf screen recorder</h1>
+<p>Records your screen in the browser. Nothing is uploaded: the file stays on this computer.</p>
+<label>Which scene? <select id="scene"><option value="8">8: Dan, "what have I got to send today?"</option><option value="9">9: Mum, "where do I need to be next?"</option><option value="x">Other</option></select></label><br>
+<button id="start">Start recording</button><button id="stop" disabled>Stop and save</button>
+<div id="msg"></div><video id="v" muted playsinline controls></video>
+<div class="note"><b>Before you press Start</b><br>Use a test account, not your real emails or calendar. Close private tabs and notifications. Pick the window that shows Wolf and make it tall and narrow (phone-shaped) if you can. Do the real question, wait for Wolf's real answer, then press Stop. Keep it under 8 seconds if you can.<br><br>
+Save the file into <code>wolf_ads/shots/</code> (it downloads as <code>screen_8.webm</code> or <code>screen_9.webm</code>).</div>
+<script>
+ const $=id=>document.getElementById(id); let rec,chunks=[],stream;
+ $('start').onclick=async()=>{
+  try{ stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:30},audio:false}); }
+  catch(e){ $('msg').textContent='Could not start: '+e.message+' (this needs Chrome or Edge on a computer).'; return; }
+  chunks=[]; const types=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
+  const mt=types.find(t=>MediaRecorder.isTypeSupported(t))||''; rec=new MediaRecorder(stream,mt?{mimeType:mt,videoBitsPerSecond:8e6}:{});
+  rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data) };
+  rec.onstop=()=>{ stream.getTracks().forEach(t=>t.stop()); const blob=new Blob(chunks,{type:'video/webm'}); const url=URL.createObjectURL(blob);
+    $('v').srcObject=null; $('v').src=url; const a=document.createElement('a'); a.href=url; a.download='screen_'+$('scene').value+'.webm'; a.click();
+    $('msg').textContent='Saved as '+a.download+'. Check your Downloads folder.'; $('start').disabled=false; $('stop').disabled=true; };
+  stream.getVideoTracks()[0].onended=()=>{ if(rec&&rec.state==='recording') rec.stop(); };
+  $('v').srcObject=stream; $('v').play(); rec.start(); $('msg').textContent='Recording...'; $('start').disabled=true; $('stop').disabled=false; };
+ $('stop').onclick=()=>{ if(rec&&rec.state==='recording') rec.stop(); };
+</script></body></html>

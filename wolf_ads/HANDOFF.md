@@ -65,3 +65,8 @@ If it is Jay's own machine: it could run image/video models locally and end the 
 - The link in the button is a placeholder: set the real link or bio wording before use.
 - Age line on the end card still conflicts ("Over 18 only" vs "Under 16s need a parent's OK"): Jay must decide.
 - The Windows PC session can animate shots with Wan (hf.space is reachable there); the cloud box cannot download them.
+
+## Screen recorder for Jay (5 Nov)
+- wolf_ads/tools/screen_recorder.html: open in Chrome or Edge on a computer, press Start, pick the window showing Wolf, press Stop. It downloads screen_8.webm or screen_9.webm. Put the file in wolf_ads/shots/ and re-render native_dan / native_mum: neo.py uses .mp4, .mov, .webm or .mkv automatically (tested with a dummy clip).
+- If Wolf runs on a phone: use the phone's built-in screen recorder (iPhone: Control Centre record button; Android: Quick Settings > Screen record), then send/copy the file to the computer and rename it screen_8.mp4 / screen_9.mp4.
+- Use a test account, not real emails or calendar. Wolf's answer must be the real one for the claim to count as shown working.
