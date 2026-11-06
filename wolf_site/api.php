@@ -30,6 +30,7 @@ if (!is_file($cfgFile)) {
     file_put_contents($cfgFile, "<?php\nreturn " . var_export($cfg, true) . ";\n");
 }
 $cfg = require $cfgFile;
+if (empty($cfg['admin'])) { $cfg['admin'] = bin2hex(random_bytes(16)); @file_put_contents($cfgFile, "<?php\nreturn " . var_export($cfg, true) . ";\n"); }
 $DATA = __DIR__ . '/' . $cfg['data'];
 if (!is_dir($DATA . '/photos')) { @mkdir($DATA . '/photos', 0750, true); }
 try {
@@ -40,7 +41,9 @@ try {
     CREATE TABLE IF NOT EXISTS devices(token_hash TEXT PRIMARY KEY, fam TEXT, label TEXT, created INT, seen INT);
     CREATE TABLE IF NOT EXISTS items(id TEXT PRIMARY KEY, fam TEXT, col TEXT, data TEXT, ts INT);
     CREATE INDEX IF NOT EXISTS items_fam ON items(fam, col);
-    CREATE TABLE IF NOT EXISTS attempts(ip TEXT, kind TEXT, ts INT);");
+    CREATE TABLE IF NOT EXISTS attempts(ip TEXT, kind TEXT, ts INT);
+    CREATE TABLE IF NOT EXISTS usage(day TEXT, fam TEXT, ai INT DEFAULT 0, tin INT DEFAULT 0, tout INT DEFAULT 0, PRIMARY KEY(day, fam));
+    CREATE TABLE IF NOT EXISTS feedback(id INTEGER PRIMARY KEY AUTOINCREMENT, fam TEXT, ts INT, txt TEXT);");
 } catch (Throwable $e) { fail('Storage is not available.', 500); }
 
 $act = $_GET['a'] ?? '';
@@ -144,6 +147,44 @@ if ($act === 'join' && $method === 'POST') {
     giveDevice($db, $f['id'], (string)($b['label'] ?? 'Phone'), $isHttps);
     bump($db, $f['id']);
     out(['ok' => true]);
+}
+
+
+/* ---------- owner-only stats (counts only, never family content) ---------- */
+if ($act === 'stats' || $act === 'backup') {
+    if (tooMany($db, $ip, 'admin', 10, 3600)) fail('Too many tries.', 429);
+    $tok = (string)($_SERVER['HTTP_X_ADMIN'] ?? '');
+    if (!hash_equals((string)$cfg['admin'], $tok)) { note($db, $ip, 'admin'); fail('Wrong admin code.', 403); }
+    if ($act === 'backup') {
+        $tmp = $DATA . '/backup_' . bin2hex(random_bytes(4)) . '.sqlite';
+        $db->exec("VACUUM INTO '" . str_replace("'", "''", $tmp) . "'");
+        header('Content-Type: application/octet-stream'); header('Content-Disposition: attachment; filename="wolf-backup-' . date('Y-m-d') . '.sqlite"'); header('Content-Length: ' . filesize($tmp));
+        readfile($tmp); @unlink($tmp); exit;
+    }
+    $q = fn(string $s, array $p = []) => (function () use ($db, $s, $p) { $st = $db->prepare($s); $st->execute($p); return $st; })();
+    $now = time(); $d30 = gmdate('Y-m-d', $now - 30 * 86400); $d7 = $now - 7 * 86400;
+    $fams = $q('SELECT id,created,ai_key,ics_url,people FROM families')->fetchAll(PDO::FETCH_ASSOC);
+    $dev = $q('SELECT fam, COUNT(*) n, MAX(seen) last FROM devices GROUP BY fam')->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC);
+    $use = $q('SELECT fam, SUM(ai) ai, SUM(tin) tin, SUM(tout) tout FROM usage WHERE day>=? GROUP BY fam', [$d30])->fetchAll(PDO::FETCH_UNIQUE | PDO::FETCH_ASSOC);
+    $today = $q('SELECT COALESCE(SUM(ai),0) FROM usage WHERE day=?', [gmdate('Y-m-d')])->fetchColumn();
+    $cnt = $q('SELECT fam, col, COUNT(*) n FROM items GROUP BY fam, col')->fetchAll(PDO::FETCH_ASSOC);
+    $byFam = []; foreach ($cnt as $r) $byFam[$r['fam']][$r['col']] = (int)$r['n'];
+    $pdir = $DATA . '/photos/'; $pBytes = []; $pTotal = 0;
+    foreach (glob($pdir . '*') ?: [] as $f) { $fam = explode('_', basename($f))[0]; $s = (int)@filesize($f); $pBytes[$fam] = ($pBytes[$fam] ?? 0) + $s; $pTotal += $s; }
+    $rows = []; $f = ['families' => count($fams), 'key' => 0, 'ics' => 0, 'names' => 0, 'multi' => 0, 'chores' => 0, 'meals' => 0, 'notes' => 0, 'photos' => 0, 'rota' => 0, 'active7' => 0, 'active30' => 0];
+    foreach ($fams as $x) {
+        $id = $x['id']; $p = json_decode($x['people'] ?: '{}', true) ?: []; $c = $byFam[$id] ?? [];
+        if ($x['ai_key']) $f['key']++; if ($x['ics_url']) $f['ics']++; if (!empty($p['adults']) || !empty($p['kids'])) $f['names']++;
+        if (($dev[$id]['n'] ?? 0) > 1) $f['multi']++;
+        foreach (['chores', 'meals', 'notes', 'photos', 'rota'] as $k) if (!empty($c[$k])) $f[$k]++;
+        $last = (int)($dev[$id]['last'] ?? 0); if ($last > $d7) $f['active7']++; if ($last > $now - 30 * 86400) $f['active30']++;
+        $rows[] = ['f' => substr(sha1($id), 0, 6), 'created' => (int)$x['created'], 'phones' => (int)($dev[$id]['n'] ?? 0), 'last' => $last, 'ai30' => (int)($use[$id]['ai'] ?? 0), 'tin' => (int)($use[$id]['tin'] ?? 0), 'tout' => (int)($use[$id]['tout'] ?? 0),
+                   'photosMB' => round(($pBytes[$id] ?? 0) / 1048576, 1), 'items' => array_sum($c)];
+    }
+    $tot = ['ai' => 0, 'tin' => 0, 'tout' => 0]; foreach ($use as $u) { $tot['ai'] += (int)$u['ai']; $tot['tin'] += (int)$u['tin']; $tot['tout'] += (int)$u['tout']; }
+    $fb = $q('SELECT ts, fam, txt FROM feedback ORDER BY id DESC LIMIT 50')->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($fb as &$b) $b['fam'] = substr(sha1($b['fam']), 0, 6); unset($b);
+    out(['ok' => true, 'funnel' => $f, 'ai' => $tot + ['today' => (int)$today], 'storage' => ['dbMB' => round((int)@filesize($DATA . '/' . $cfg['db']) / 1048576, 1), 'photosMB' => round($pTotal / 1048576, 1), 'diskFreeGB' => round((float)@disk_free_space($DATA) / 1073741824, 1), 'diskTotalGB' => round((float)@disk_total_space($DATA) / 1073741824, 1)], 'families' => $rows, 'feedback' => $fb]);
 }
 
 $me = who($db);
@@ -320,6 +361,11 @@ if ($act === 'people' && $method === 'POST') {
     $b = body(); $l = fn($x) => array_values(array_slice(array_filter(array_map(fn($s) => mb_substr(trim((string)$s), 0, 24), is_array($x) ? $x : []), 'strlen'), 0, 8));
     $db->prepare('UPDATE families SET people=? WHERE id=?')->execute([json_encode(['adults' => $l($b['adults'] ?? []), 'kids' => $l($b['kids'] ?? [])]), $fam]); bump($db, $fam); out(['ok' => true]);
 }
+if ($act === 'feedback' && $method === 'POST') {
+    if (tooMany($db, $ip, 'feedback', 10, 3600)) fail('Thanks, we have got plenty for now. Try again later.', 429);
+    $t = mb_substr(trim((string)(body()['text'] ?? '')), 0, 1500); if ($t === '') fail('Write something first.');
+    note($db, $ip, 'feedback'); $db->prepare('INSERT INTO feedback(fam,ts,txt) VALUES(?,?,?)')->execute([$fam, time(), $t]); out(['ok' => true]);
+}
 function aiBase(): string { return rtrim(getenv('WOLF_AI_BASE') ?: 'https://generativelanguage.googleapis.com', '/'); }
 function pickModel(string $key): ?string {
     $raw = httpGet(aiBase() . '/v1beta/models?pageSize=200', ['x-goog-api-key: ' . $key], 10); if ($raw === null) return null;
@@ -359,7 +405,7 @@ if ($act === 'settings' && $method === 'POST') {
 }
 if ($act === 'wipe' && $method === 'POST') {
     foreach (glob($DATA . '/photos/' . $fam . '_*') ?: [] as $p) @unlink($p);
-    foreach (['items', 'devices'] as $t) $db->prepare("DELETE FROM $t WHERE fam=?")->execute([$fam]);
+    foreach (['items', 'devices', 'usage', 'feedback'] as $t) $db->prepare("DELETE FROM $t WHERE fam=?")->execute([$fam]);
     $db->prepare('DELETE FROM families WHERE id=?')->execute([$fam]);
     setcookie('wolf_t', '', ['expires' => 1, 'path' => '/']); out(['ok' => true]);
 }
@@ -414,7 +460,7 @@ if ($act === 'ai' && $method === 'POST') {
         }
         return 'Unknown tool';
     };
-    $model = $F['ai_model'] ?: 'gemini-2.5-flash'; $contents = [['role' => 'user', 'parts' => [['text' => $msg]]]]; $reply = '';
+    $tin = 0; $tout = 0; $model = $F['ai_model'] ?: 'gemini-2.5-flash'; $contents = [['role' => 'user', 'parts' => [['text' => $msg]]]]; $reply = '';
     for ($round = 0; $round < 4; $round++) {
         $payload = json_encode(['systemInstruction' => ['parts' => [['text' => $sys]]], 'contents' => $contents, 'tools' => $tools]);
         $ch = curl_init(aiBase() . '/v1beta/models/' . rawurlencode($model) . ':generateContent');
@@ -424,13 +470,14 @@ if ($act === 'ai' && $method === 'POST') {
         if ($code === 429) fail('Your free AI limit is used up for now. Try again later, or use your own paid AI plan.', 429);
         if ($code === 400 || $code === 403) fail('The AI service refused the request. Check your AI key in Set-up.', 400);
         if ($code < 200 || $code >= 300) fail('The AI service had a problem. Try again.', 502);
-        $j = json_decode($raw, true); $parts = $j['candidates'][0]['content']['parts'] ?? [];
+        $j = json_decode($raw, true); $tin += (int)($j['usageMetadata']['promptTokenCount'] ?? 0); $tout += (int)($j['usageMetadata']['candidatesTokenCount'] ?? 0); $parts = $j['candidates'][0]['content']['parts'] ?? [];
         $calls = []; $txt = ''; foreach ($parts as $p) { if (isset($p['functionCall'])) $calls[] = $p['functionCall']; if (isset($p['text'])) $txt .= $p['text']; }
         if (!$calls) { $reply = trim($txt); break; }
         $contents[] = ['role' => 'model', 'parts' => $parts]; $resp = [];
         foreach ($calls as $c) $resp[] = ['functionResponse' => ['name' => $c['name'], 'response' => ['result' => $exec((string)$c['name'], is_array($c['args'] ?? null) ? $c['args'] : [])]]];
         $contents[] = ['role' => 'user', 'parts' => $resp]; if ($txt !== '') $reply = trim($txt);
     }
+    $db->prepare('INSERT INTO usage(day,fam,ai,tin,tout) VALUES(?,?,1,?,?) ON CONFLICT(day,fam) DO UPDATE SET ai=ai+1, tin=tin+excluded.tin, tout=tout+excluded.tout')->execute([gmdate('Y-m-d'), $fam, $tin, $tout]);
     out(['ok' => true, 'reply' => $reply !== '' ? $reply : 'Done.']);
 }
 fail('Unknown request.', 404);

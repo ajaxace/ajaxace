@@ -7,7 +7,7 @@ You need: a Hostinger web hosting plan with PHP 8.2 or newer, and a subdomain (f
 2. hPanel > **Advanced > PHP Configuration**. Choose PHP 8.2 or newer. Make sure these extensions are ticked: `pdo_sqlite`, `curl`, `openssl`, `fileinfo`, `mbstring`.
 3. hPanel > **Security > SSL**. Make sure the subdomain has SSL (https). Wolf needs https for the microphone and install-to-home-screen.
 4. hPanel > **File Manager**. Open the subdomain's folder.
-5. Upload these files from `wolf_site/`: `index.html`, `guide.html`, the `guide/` folder, `app.js`, `api.php`, `sw.js`, `manifest.webmanifest`, `.htaccess`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`. Do NOT upload `src/`, `build.py`, `DEPLOY.md`.
+5. Upload these files from `wolf_site/`: `index.html`, `guide.html`, `admin.html`, the `guide/` folder, `app.js`, `api.php`, `sw.js`, `manifest.webmanifest`, `.htaccess`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`. Do NOT upload `src/`, `build.py`, `DEPLOY.md`.
 6. Open `https://your-subdomain/api.php?a=health`. You should see `{"ok":true,...}`. If you see an error, tell Claude what it says.
 7. Open `https://your-subdomain/` on your phone. Tap **Create my family** and follow the set-up guide.
 
@@ -27,3 +27,6 @@ Open `config.php` in File Manager and set `'notice' => 'Planned maintenance Sund
 1. Sign up for a free uptime monitor (for example UptimeRobot).
 2. Add a monitor for `https://wolf.yourdomain.com/api.php?a=health`, checking every 5 minutes, and send alerts to your email.
 3. In hPanel, turn on auto-renew only after you've decided you want to keep paying. Put the renewal date in your calendar 60 days ahead.
+
+## Your owner dashboard
+Open `https://wolf.yourdomain.com/admin.html`. The code it asks for is the `'admin'` line in `config.php` (File Manager > right-click `config.php` > Edit). It shows counts, set-up funnel, storage, the money calculator and feedback. It never shows a family's content. Keep the code private.

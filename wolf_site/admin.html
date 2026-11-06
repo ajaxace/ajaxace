@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow"><title>Wolf owner dashboard</title>
+<style>
+:root{color-scheme:dark;--navy:#0b1430;--card:#17254a;--navy2:#14203f;--line:#25356a;--cy:#2ec5ff;--tl:#14e0c0;--or:#fca311;--tx:#f2f5ff;--mut:#9fb0d8;--bad:#ff8f9b}
+*{box-sizing:border-box}html,body{margin:0;background:var(--navy);color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+main{max-width:860px;margin:0 auto;padding:18px 16px 60px}h1{font-size:24px;margin:6px 0 2px}h2{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:22px 0 8px}
+.sub{color:var(--mut);font-size:13px;margin:0 0 12px}.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.t{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}.t b{display:block;font-size:24px;font-variant-numeric:tabular-nums}.t span{font-size:12px;color:var(--mut)}
+.bar{margin:6px 0}.bar .l{display:flex;justify-content:space-between;font-size:13px}.bar .b{height:10px;border-radius:99px;background:var(--navy2);overflow:hidden;border:1px solid var(--line)}.bar .b i{display:block;height:100%;background:var(--tl)}
+input,button{font:inherit}input{padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--navy2);color:var(--tx);width:100%}button{padding:10px 14px;border-radius:10px;border:0;background:var(--or);color:#2b1a00;font-weight:800;cursor:pointer}button.alt{background:var(--navy2);color:var(--tx);border:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}.grid2 label{font-size:12px;color:var(--mut);display:flex;flex-direction:column;gap:4px}
+.res{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-top:10px}.res div{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--line)}.res div:last-child{border:0;font-weight:800}
+.good{color:var(--tl)}.bad{color:var(--bad)}table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.fb{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;font-size:14px;white-space:pre-wrap;word-break:break-word}.fb small{color:var(--mut);display:block;margin-top:4px}
+.note{font-size:12.5px;color:var(--mut)}#msg{color:var(--bad);min-height:20px}
+</style></head><body><main>
+<h1>Wolf owner dashboard</h1><p class="sub">Counts and costs only. You never see a family's calendar, notes, photos or lists here.</p>
+<div id="login"><input id="tok" type="password" placeholder="Admin code (from config.php, the 'admin' line)" autocomplete="off"><div style="margin-top:8px"><button id="go">Open dashboard</button></div><div id="msg"></div></div>
+<div id="dash" hidden>
+<h2>Right now</h2><div class="tiles" id="tiles"></div>
+<h2>Where families get stuck (set-up funnel)</h2><div id="funnel"></div>
+<h2>Servers and storage</h2><div class="tiles" id="store"></div>
+<h2>Money calculator</h2><p class="note">Change the numbers to test ideas. Prices are assumptions. Check your providers' current prices.</p>
+<div class="grid2" id="inputs"></div><div class="res" id="res"></div>
+<h2>Families (anonymous)</h2><div class="wrap"><table id="fam"></table></div>
+<h2>What families told us</h2><div id="fb"></div>
+<h2>Backup</h2><p class="note">Downloads the database only (not photos). The secret key stays in config.php, so back that up too. Keep both private.</p><button class="alt" id="bk">Download database backup</button>
+</div>
+<script>
+const $=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString("en-GB"),gbp=n=>(n<0?"-":"")+"£"+Math.abs(Number(n)).toFixed(2);
+const H=()=>({"X-Admin":sessionStorage.getItem("wolf_admin")||""});
+async function load(){const r=await fetch("api.php?a=stats",{headers:H()});const j=await r.json().catch(()=>({}));if(!r.ok||!j.ok){$("msg").textContent=j.error||"Could not open.";return false}render(j);return true}
+let D=null;
+function render(j){D=j;$("login").hidden=true;$("dash").hidden=false;const f=j.funnel,a=j.ai;
+ const T=(n,l)=>`<div class="t"><b>${n}</b><span>${l}</span></div>`;
+ $("tiles").innerHTML=T(fmt(f.families),"families")+T(fmt(f.active7),"active in 7 days")+T(fmt(f.active30),"active in 30 days")+T(fmt(a.today),"AI messages today")+T(fmt(a.ai),"AI messages, 30 days")+T(fmt(a.tin+a.tout),"AI tokens, 30 days");
+ const steps=[["AI key added",f.key],["Names added",f.names],["Calendar connected",f.ics],["Two or more phones",f.multi],["Uses rota",f.rota],["Uses chores",f.chores],["Uses meals",f.meals],["Uses notes",f.notes],["Uses photos",f.photos]];
+ $("funnel").innerHTML=f.families?steps.map(([l,n])=>`<div class="bar"><div class="l"><span>${l}</span><span>${n} of ${f.families} (${Math.round(100*n/f.families)}%)</span></div><div class="b"><i style="width:${100*n/f.families}%"></i></div></div>`).join(""):'<p class="note">No families yet.</p>';
+ const s=j.storage;$("store").innerHTML=T(s.dbMB+" MB","database")+T(s.photosMB+" MB","photos")+T(s.diskFreeGB+" GB","disk free")+T(s.diskTotalGB?Math.round(100*(s.dbMB+s.photosMB)/1024/s.diskTotalGB)+"%":"–","of disk used by Wolf");
+ const rows=j.families.slice().sort((x,y)=>y.last-x.last);
+ $("fam").innerHTML="<tr><th>Family</th><th>Phones</th><th>Last seen</th><th>AI msgs 30d</th><th>Tokens 30d</th><th>Photos MB</th><th>Items</th></tr>"+rows.map(r=>`<tr><td>${r.f}</td><td>${r.phones}</td><td>${r.last?new Date(r.last*1000).toLocaleDateString("en-GB"):"–"}</td><td>${r.ai30}</td><td>${fmt(r.tin+r.tout)}</td><td>${r.photosMB}</td><td>${r.items}</td></tr>`).join("");
+ $("fb").innerHTML=j.feedback.length?j.feedback.map(b=>`<div class="fb"></div>`).join(""):'<p class="note">Nothing yet.</p>';
+ [...$("fb").children].forEach((d,i)=>{const b=j.feedback[i];d.textContent=b.txt;const s2=document.createElement("small");s2.textContent=new Date(b.ts*1000).toLocaleString("en-GB")+" · family "+b.fam;d.appendChild(s2)});
+ inputs();calc()}
+const DEF={host:13,price:69,subs:0,plus:5,fee:1.5,fixed:0.20,aiIn:0.30,aiOut:2.50,usd:0.79,share:100,newfam:0,cac:0};
+function inputs(){let v=DEF;try{v=Object.assign({},DEF,JSON.parse(localStorage.getItem("wolf_calc")||"{}"))}catch(e){}
+ const L={host:"Hosting £ per month (use renewal price)",newfam:"New £69 sales this month",price:"One-off price £",cac:"Ad cost per sale £",subs:"Paying Plus subscribers",plus:"Plus price £ per month",share:"% of families using Wolf's own AI",aiIn:"AI $ per 1M input tokens",aiOut:"AI $ per 1M output tokens",usd:"£ per $",fee:"Card fee %",fixed:"Card fee fixed £"};
+ $("inputs").innerHTML=Object.keys(L).map(k=>`<label>${L[k]}<input data-k="${k}" type="number" step="any" value="${v[k]}"></label>`).join("");
+ $("inputs").oninput=()=>{const o={};document.querySelectorAll("#inputs input").forEach(i=>o[i.dataset.k]=parseFloat(i.value)||0);try{localStorage.setItem("wolf_calc",JSON.stringify(o))}catch(e){}calc()}}
+function val(){const o={};document.querySelectorAll("#inputs input").forEach(i=>o[i.dataset.k]=parseFloat(i.value)||0);return o}
+function calc(){const v=val(),a=D.ai,fams=Math.max(1,D.funnel.families);
+ const aiCost=(a.tin/1e6*v.aiIn+a.tout/1e6*v.aiOut)*v.usd*(v.share/100);
+ const oneoff=v.newfam*(v.price-(v.price*v.fee/100+v.fixed)),cacT=v.newfam*v.cac;
+ const sub=v.subs*(v.plus-(v.plus*v.fee/100+v.fixed));
+ const net=oneoff-cacT+sub-v.host-aiCost;
+ const perSub=v.plus-(v.plus*v.fee/100+v.fixed)-(aiCost/Math.max(1,v.subs||fams));
+ const be=perSub>0?Math.ceil(v.host/perSub):null;
+ const R=(l,x,c)=>`<div><span>${l}</span><span class="${c||""}">${x}</span></div>`;
+ $("res").innerHTML=R("One-off sales after card fees",gbp(oneoff))+R("Ad spend",gbp(-cacT))+R("Plus subscriptions after card fees",gbp(sub))+R("Hosting",gbp(-v.host))+R("AI if Wolf pays (measured 30 days, scaled)",gbp(-aiCost))+R("Plus subscribers needed to cover hosting",be===null?"–":be)+R("Net this month",gbp(net),net>=0?"good":"bad")}
+$("go").onclick=async()=>{sessionStorage.setItem("wolf_admin",$("tok").value.trim());$("msg").textContent="";await load()};
+$("bk").onclick=async()=>{const r=await fetch("api.php?a=backup",{headers:H()});if(!r.ok){alert("Backup failed.");return}const b=await r.blob(),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="wolf-backup-"+new Date().toISOString().slice(0,10)+".sqlite";a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)};
+if(sessionStorage.getItem("wolf_admin"))load();
+</script></main></body></html>

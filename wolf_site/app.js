@@ -158,6 +158,7 @@ const arm=(b,msg,fn)=>{let t=0;b.onclick=()=>{if(t){fn();return}t=1;const o=b.te
 arm($("leavebtn"),"",async()=>{try{await api("leave",{body:{}})}catch(e){}authed=false;showWelcome()});
 arm($("wipebtn"),"",async()=>{try{await api("wipe",{body:{}});authed=false;D={ev:[],shop:[],rem:[],notes:[],chores:[],meals:[],rota:[],photos:[],ics:[]};S.ver=0;showWelcome();toast("Your family's data was deleted.")}catch(e){toast(e.message)}});
 arm($("codebtn"),"",async()=>{try{const j=await api("newcode",{body:{}});S.code=j.code;renderFam();toast("New code made. The old one no longer works.")}catch(e){toast(e.message)}});
+$("fbsend").onclick=async()=>{const t=$("fbtxt").value.trim();if(!t){toast("Write something first.");return}try{await api("feedback",{body:{text:t}});$("fbtxt").value="";toast("Thank you. We read every message.")}catch(e){toast(e.message)}};
 /* ---------- start ---------- */
 if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 (async()=>{try{const j=await api("me");S.support=j.support||"";S.video=j.video||"";showNotice(j.notice);if(j.authed){authed=true;$("boot").classList.remove("on");await sync(true)}else showWelcome()}catch(e){showWelcome();$("werr").textContent="Can't reach Wolf right now. Check your connection."}})();
