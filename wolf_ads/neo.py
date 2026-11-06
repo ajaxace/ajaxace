@@ -99,7 +99,7 @@ def draw_tiers(cv, lt, t):
                                   (tier_card("Wolf Box", "COMING SOON", "Wolf at home. Details to follow.", OR, True), 1.9)]):
         a = eo((lt - ti) / 0.4); sp, pad = spr; paste(cv, sp, W / 2 - sp.width / 2 + (1 - a) * 120, 330 + i * 400 - pad, alpha=a)
     s3, p3 = tsprite("Pay once. No yearly fee.", F(BOLD, 40), WH + (255,), TL, 10); paste(cv, s3, W / 2 - s3.width / 2, 1540, alpha=eo((lt - 2.4) / 0.4))
-    s2, p2 = tsprite("Over 18 only. Under 16s need a parent's OK.", F(REG, 32), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1620, alpha=eo((lt - 2.8) / 0.4))
+    s2, p2 = tsprite("Account holder must be 18+.", F(REG, 32), (200, 215, 240, 255)); paste(cv, s2, W / 2 - s2.width / 2, 1620, alpha=eo((lt - 2.8) / 0.4))
 
 @lru_cache(maxsize=None)
 def banner(title, sub, col):
@@ -283,7 +283,7 @@ def static_overlay():
         d.line((x, y, x + 60 * sx, y), fill=CY + (170,), width=3); d.line((x, y, x, y + 60 * sy), fill=CY + (170,), width=3)
     d.text((110, 62), "WOLF  //  FAMILY AI", font=F(MONO, 24), fill=CY + (170,)); return ov
 STATIC = static_overlay()
-LABEL = tsprite("Screens simulated", F(REG, 30), (235, 242, 255, 255))[0]
+LABEL = tsprite("Demo with sample data", F(REG, 30), (235, 242, 255, 255))[0]
 
 # ---------------- scene / intro / end ----------------
 def draw_title(cv, title, lt):
@@ -330,8 +330,8 @@ def end_sprites():
     L.append(("PRICE", 765, 0.65))
     T("£179 for mum, dad and one child.", F(REG, 38), (225, 232, 248, 255), 900, 0.95); T("£49 per extra child. Pay once. No yearly fee.", F(BOLD, 36), (225, 232, 248, 255), 950, 0.95)
     T("Finds options. Books nothing.", F(BOLD, 40), WH + (255,), 1040, 1.2, TL)
-    T("Over 18 only. Under 16s need a parent's OK.", F(REG, 33), (225, 232, 248, 255), 1150, 1.5)
-    T("Made and shipped by a third party.", F(REG, 31), (160, 178, 208, 255), 1230, 1.7); T("Jay does not personally do the work.", F(REG, 31), (160, 178, 208, 255), 1274, 1.7)
+    T("Account holder must be 18+.", F(REG, 33), (225, 232, 248, 255), 1150, 1.5)
+    T("Supplied by a third-party partner.", F(REG, 31), (160, 178, 208, 255), 1230, 1.7); T("Sold by Ajax.", F(REG, 31), (160, 178, 208, 255), 1274, 1.7)
     T("Screens simulated.", F(REG, 28), (160, 178, 208, 255), 1340, 1.9); return L
 
 def draw_end(cv, lt, t):
@@ -427,7 +427,7 @@ def nscreen(cv, i, lt):
     for e in els:
         a = eo((lt - e["t"]) / 0.25)
         if a > 0: paste(cv, e["sp"], e["x"], e["y"] + (1 - a) * 30, alpha=a)
-    d = ImageDraw.Draw(cv); d.text((W / 2, 1630), "Screens simulated", font=F(REG, 28), fill=(130, 138, 155, 255), anchor="mm")
+    d = ImageDraw.Draw(cv); d.text((W / 2, 1630), "Demo with sample data", font=F(REG, 28), fill=(130, 138, 155, 255), anchor="mm")
     d.rounded_rectangle((40, 1690, W - 40, 1790), 50, fill=(255, 255, 255, 255), outline=(214, 219, 230, 255), width=2); d.text((90, 1740), "Message Wolf", font=F(REG, 38), fill=(150, 158, 175, 255), anchor="lm")
 
 _clips = {}
@@ -447,7 +447,7 @@ def nend(cv, lt):
         sp, _ = tsprite(text, F(BOLD if bold else REG, size), col + (255,)); a = eo((lt - ti) / 0.3); paste(cv, sp, W / 2 - sp.width / 2, y + (1 - a) * 20, alpha=a)
     a = eo((lt - 0.6) / 0.3); btn = Image.new("RGBA", (860, 112), (0, 0, 0, 0)); bd = ImageDraw.Draw(btn)
     bd.rounded_rectangle((0, 0, 859, 111), 56, fill=OR + (255,)); bd.text((430, 56), "Watch the full video: link in bio", font=F(BOLD, 42), fill=NAVY2 + (255,), anchor="mm"); paste(cv, btn, 110, 1070 + (1 - a) * 20, alpha=a)
-    for text, size, y, ti in [("Over 18 only. Under 16s need a parent's OK.", 32, 1260, 0.9), ("Made and shipped by a third party.", 30, 1320, 1.0), ("Jay does not personally do the work.", 30, 1362, 1.0), ("AI-generated dramatisation. Screens simulated.", 28, 1440, 1.1)]:
+    for text, size, y, ti in [("Account holder must be 18+.", 32, 1260, 0.9), ("Supplied by a third-party partner.", 30, 1320, 1.0), ("Sold by Ajax.", 30, 1362, 1.0), ("AI-generated dramatisation. Screens simulated.", 28, 1440, 1.1)]:
         sp, _ = tsprite(text, F(REG, size), (170, 185, 215, 255)); paste(cv, sp, W / 2 - sp.width / 2, y, alpha=eo((lt - ti) / 0.3))
 
 def _scr(i):

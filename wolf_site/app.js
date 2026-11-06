@@ -31,7 +31,7 @@ async function sync(force){if(!authed||syncing)return;syncing=true;
   S.ver=j.ver;S.people=j.people||{adults:[],kids:[]};S.hasKey=j.hasKey;S.hasIcs=j.hasIcs;S.code=j.code;S.members=j.members||[];S.me=j.me;
   ["ev","shop","rem","notes","chores","meals","rota"].forEach(c=>D[c]=j.data[c]||[]);D.photos=j.photos||[];D.ics=j.ics||[];renderAll()}
  catch(e){if(e.status===401){authed=false;showWelcome()}}finally{syncing=false}}
-setInterval(()=>{if(!document.hidden)sync()},6000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
+setInterval(()=>{if(!document.hidden)sync()},15000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
 /* ---------- welcome ---------- */
 function showWelcome(){$("welcome").classList.add("on");$("boot").classList.remove("on")}
 function nameOk(){const n=$("wname").value.trim();if(!n){$("werr").textContent="Please type your first name.";$("wname").focus();return null}return n}

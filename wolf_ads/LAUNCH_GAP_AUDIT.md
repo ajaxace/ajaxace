@@ -38,3 +38,15 @@ Chief of Staff and the Drive 05 vetting teams still need to review this list.
 
 ## Teams still to review
 Chief of Staff, psychology, legal, trend and illustration teams (Drive folder 05). Re-run the vetting gate on the real product, not the prototype.
+
+## Update 6 Nov (later)
+Done since the first audit:
+- Customer-facing app built (wolf_site): family accounts, shared lists, notes, chores, meals, photos, AI via each family's own free key, calendar by private link, set-up guide with pictures, deploy steps. Tested in a simulated setup, not yet on Hostinger or real phones.
+- Postal address: Jay is arranging a UK virtual office. Contact by email only. Placeholder stays until given.
+- Ad end cards in neo.py now say Ajax, 18+ and "Supplied by a third-party partner" (not re-rendered yet).
+
+New finding (important):
+- The ads and the prototype recording show Wolf finding train times, taxis and cinema times. The real app has no live data and says so. Either remove "finds options" from ads and product claims until built, or build and test search-based answers first. Do not post any ad showing those answers until then.
+- The prototype recording (shots/screen_8.mp4) shows scripted answers. Re-record from the real site once it is live, showing only what works: calendar link events, lists, reminders, notes, chores, voice.
+
+Still open: Hostinger plan and upload, ICO registration, privacy notice, terms, Stripe, ad link, quota figure for fair use, solicitor check, testing on real phones.
