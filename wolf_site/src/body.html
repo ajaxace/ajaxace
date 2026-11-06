@@ -1,0 +1,90 @@
+<div class="phone">
+<div id="boot" class="on"><img src="icon-192.png" alt=""><p>Loading Wolf…</p></div>
+<div id="welcome">
+  <img src="icon-192.png" alt=""><h1>Wolf</h1>
+  <p>Your family's own AI assistant. One calendar, one shopping list, one place for the whole family.</p>
+  <div class="wbox">
+    <input id="wname" placeholder="Your first name" maxlength="24" autocomplete="given-name">
+    <button class="btn" id="wcreate">Create my family</button>
+    <div class="or">OR JOIN YOUR FAMILY</div>
+    <input id="wcode" class="code" placeholder="FAMILY CODE" maxlength="12" autocapitalize="characters" autocomplete="off">
+    <button class="btn alt" id="wjoin">Join with a code</button>
+    <div class="err" id="werr"></div>
+  </div>
+</div>
+<header>
+  <img src="icon-192.png" alt="Wolf">
+  <div class="bw"><div class="brand">Wolf</div><div class="clock" id="clock"></div></div>
+  <div class="pill" id="pill"><span class="dot"></span><span id="pilltxt">Family linked</span></div>
+</header>
+<div id="toast" role="status"></div>
+<div id="view"><img id="vimg" alt=""><div class="row"><button id="vclose">Close</button><button class="del" id="vdel" hidden>Delete</button></div></div>
+<main>
+  <section class="tab on" id="t-ask">
+    <div id="chat"><div class="hello"><img src="icon-192.png" alt=""><h2>Hi, I'm Wolf.</h2><p>Ask me about the week, add things to your lists, or set a reminder. Tap the mic to talk.</p></div><div id="check"></div></div>
+    <div class="sugg" id="sugg"></div>
+    <form id="f" autocomplete="off"><input id="q" placeholder="Ask Wolf or tap the mic…" enterkeyhint="send"><button type="button" id="mic" class="mic" aria-label="Speak to Wolf"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><button class="send" aria-label="Send">&#10148;</button></form>
+  </section>
+  <section class="tab" id="t-week"><div class="pad" id="week"></div></section>
+  <section class="tab" id="t-list"><div class="pad" id="lists"></div></section>
+  <section class="tab" id="t-more"><div class="pad"><h3>More for the family</h3><div class="menu">
+    <button class="mc" data-go="chores"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg><b>Chores</b><span id="mc1">Pocket money for jobs done</span></button>
+    <button class="mc" data-go="meals"><svg viewBox="0 0 24 24"><path d="M6 3v8a3 3 0 0 0 6 0V3M9 3v18M18 3c-2 2-3 5-3 8h3v10"/></svg><b>Meals</b><span id="mc2">Dinner plan to shopping list</span></button>
+    <button class="mc" data-go="notes"><svg viewBox="0 0 24 24"><path d="M5 4h14v12l-5 5H5z"/><path d="M14 21v-5h5M8 9h8M8 13h4"/></svg><b>Notes</b><span id="mc3">Shared with the family</span></button>
+    <button class="mc" data-go="store"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg><b>Photos</b><span id="mc4">Family storage</span></button></div></div></section>
+  <section class="tab" id="t-chores"><div class="pad"><button class="back" data-go="more">‹ More</button><h3>Chores and pocket money</h3><div id="kids"></div>
+    <form class="fadd" id="cform" autocomplete="off"><input id="ctitle" placeholder="New chore, e.g. Tidy bedroom"><button>Add</button><div class="r2"><select id="cwho"></select><input id="cval" type="number" inputmode="decimal" min="0" step="0.5" placeholder="£ reward" value="1"></div></form><div id="clist"></div></div></section>
+  <section class="tab" id="t-meals"><div class="pad"><button class="back" data-go="more">‹ More</button><h3>Dinner plan</h3><div id="meals"></div></div></section>
+  <section class="tab" id="t-notes"><div class="pad"><button class="back" data-go="more">‹ More</button><h3>Family notes</h3><form id="nform" autocomplete="off"><input id="ninp" placeholder="Write a note for the family…" enterkeyhint="send"><button>Post</button></form><div id="nlist"></div></div></section>
+  <section class="tab" id="t-store"><div class="pad"><button class="back" data-go="more">‹ More</button><h3>Family storage</h3>
+    <div class="up"><label for="cam"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Take photo</label><label class="alt" for="gal"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg>Add from gallery</label>
+    <input id="cam" type="file" accept="image/*" capture="environment"><input id="gal" type="file" accept="image/*" multiple></div>
+    <p id="smsg">Photos you add here are shared with everyone in the family.</p><div class="grid" id="grid"></div></div></section>
+  <section class="tab" id="t-fam"><div class="pad">
+    <div class="fcard"><small style="margin:0 0 4px">FAMILY CODE</small><div class="code" id="fcode">—</div><small id="fcount"></small>
+      <small>Anyone with this code can join your family. Share it only with your family.</small>
+      <div class="row2"><button id="copybtn" style="flex:1">Copy code</button><button id="sharebtn" style="flex:1">Share</button></div></div>
+    <button class="btn" data-go="setup" style="margin-bottom:12px">Open the set-up guide</button>
+    <h3>Your family</h3><div id="people"></div>
+    <div class="plan"><h4>Free for everyday use</h4><p>Wolf uses free AI services for normal family messages, which is plenty for day-to-day use. Free use has a fair-use limit. If your family uses Wolf heavily, for work, or all day long, you'll need your own AI plan from the AI provider. We'll guide you through 2 or 3 options, and you pay the provider directly. Free services can change or be slower at busy times.</p></div>
+    <div class="plan"><h4>Optional add-ons</h4><p>We'll guide you through 2 or 3 choices for each. Buy two of the same type and get one free.</p><ul>
+      <li><div>Storage<br><span>Google Drive or OneDrive</span></div><b>£25 each</b></li>
+      <li><div>Send emails<br><span>Gmail, Outlook or another provider</span></div><b>£30</b></li>
+      <li><div>Alerts when the app is closed<br><span>WhatsApp, Telegram or text</span></div><b>Coming soon</b></li></ul></div>
+    <div class="note"><b>What Wolf does:</b> reads your family calendar link, keeps your lists and finds options.<br><b>What it doesn't:</b> book anything, or promise a pickup.</div>
+    <div class="danger"><small style="color:var(--mut)">Your family's data is stored on Wolf's server and sent to your AI service when you chat.</small><br>
+      <button id="leavebtn">Leave on this phone</button><button id="wipebtn">Delete my family's data</button><button id="codebtn">Make a new family code</button></div>
+    <p style="margin:14px 0 0;font-size:12.5px;color:var(--mut)">Need a hand? <a id="support" style="color:var(--cy)" href="#">Contact support</a></p>
+  </div></section>
+  <section class="tab" id="t-setup"><div class="pad"><button class="back" data-go="fam">‹ Family</button><h3>Set-up guide</h3><p style="color:var(--mut);font-size:14px;margin:0 0 8px">Like setting up a new phone. Do each step in order. It takes about 10 minutes. You do your own logins and passwords. We never ask for them.</p><a class="btn alt sm" href="guide.html" target="_blank" rel="noopener" style="margin-bottom:12px">Open the guide with pictures</a>
+    <div class="setup" id="s1"><h4><i>1</i> Add your free AI key</h4>
+      <p>Wolf chats using your own free key from Google. Never send this key to anyone. Paste it only here on your own phone.</p>
+      <a class="btn sm" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">1. Open Google AI Studio</a>
+      <ol><li>Sign in with your Google account.<img class="gimg" src="guide/key-1.jpg" alt="" loading="lazy" onerror="this.remove()"></li><li>Tap <b>Create API key</b>.<img class="gimg" src="guide/key-2.jpg" alt="" loading="lazy" onerror="this.remove()"></li><li>Tap the copy icon next to your new key.<img class="gimg" src="guide/key-3.jpg" alt="" loading="lazy" onerror="this.remove()"></li><li>Come back here and tap <b>Paste and test</b>.</li></ol>
+      <div class="row"><button class="btn alt sm" id="k_paste">Paste and test</button></div>
+      <div class="row"><input id="k_inp" placeholder="Or paste the key here" autocomplete="off" spellcheck="false"><button class="btn sm" id="k_go" style="flex:none">Test</button></div><div class="err" id="k_msg"></div></div>
+    <div class="setup" id="s2"><h4><i>2</i> Add your family's names</h4><p>So chores and the school run work. Separate names with commas.</p>
+      <div class="row"><input id="p_ad" placeholder="Adults, e.g. Dan, Claire"></div><div class="row"><input id="p_kid" placeholder="Children, e.g. Sarah, Jack"></div>
+      <div class="row"><button class="btn sm" id="p_save">Save names</button></div></div>
+    <div class="setup" id="s3"><h4><i>3</i> Connect your calendar</h4><p>Paste your calendar's private link. Wolf only reads it. It never changes your calendar.</p>
+      <div class="tabs2"><button class="on" data-cal="g">Google</button><button data-cal="o">Outlook</button><button data-cal="a">Apple</button></div>
+      <ol id="calsteps"></ol>
+      <div class="row"><input id="c_inp" placeholder="Paste the calendar link" autocomplete="off" spellcheck="false"><button class="btn sm" id="c_go" style="flex:none">Connect</button></div><div class="err" id="c_msg"></div>
+      <button class="link" id="c_skip">Skip for now. I'll add events by hand.</button></div>
+    <div class="setup" id="s4"><h4><i>4</i> Invite your family</h4><p>On each family phone, open Wolf, tap <b>Join with a code</b> and enter:</p><div class="code" id="s4code" style="font-size:26px;font-weight:800;letter-spacing:3px;color:var(--cy);margin:6px 0 10px">—</div>
+      <div class="row"><button class="btn alt sm" id="s4copy">Copy code</button><button class="btn sm" id="s4share">Share code</button></div></div>
+    <div class="setup" id="s5"><h4><i>5</i> Put Wolf on your home screen</h4>
+      <ol><li><b>Android (Chrome):</b> tap the three dots, then <b>Add to Home screen</b> or <b>Install app</b>.</li><li><b>iPhone (Safari):</b> tap the Share button, then <b>Add to Home Screen</b>.</li></ol>
+      <div class="row"><button class="btn sm" id="s5go" hidden>Install Wolf</button></div></div>
+    <div class="setup" id="s6"><h4><i>6</i> Stuck?</h4><p>Watch the set-up video, or send us an email and we'll point you to the right step. You always do your own logins and passwords. We never ask for them, and we never see your family's data. If you share a screenshot, hide your AI key and calendar link first.</p>
+      <div class="row"><a class="btn sm" id="s6vid" href="#" target="_blank" rel="noopener" hidden>Watch the set-up video</a><a class="btn alt sm" id="s6mail" href="#">Email for help</a></div></div>
+  </div></section>
+</main>
+<nav>
+  <button class="on" data-t="ask"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>Ask Wolf</button>
+  <button data-t="week"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Week</button>
+  <button data-t="list"><svg viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Lists</button>
+  <button data-t="more"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>More</button>
+  <button data-t="fam"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg>Family</button>
+</nav>
+</div>
