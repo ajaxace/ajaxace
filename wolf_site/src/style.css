@@ -144,3 +144,5 @@ nav button{font-size:10.5px;letter-spacing:0}
 .ro{font-size:10px;color:var(--mut);margin-left:6px}
 
 .gimg{display:block;width:100%;max-width:340px;border-radius:12px;margin:8px 0 4px;border:1px solid var(--line)}
+
+#notice{position:absolute;left:0;right:0;top:0;z-index:30;background:#fca311;color:#2b1a00;font-size:13px;font-weight:700;padding:8px 14px;text-align:center}

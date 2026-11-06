@@ -27,11 +27,12 @@ async function put(col,obj){const r=await api("put",{body:{col,obj}});await sync
 async function upd(col,id,patch){await api("upd",{body:{col,id,patch}});await sync(true)}
 async function del(col,id){await api("del",{body:{col,id}});await sync(true)}
 async function sync(force){if(!authed||syncing)return;syncing=true;
- try{const j=await api("sync",{qs:"&since="+(force?0:S.ver)+"&tz="+encodeURIComponent(TZ)});if(j.same)return;
+ try{const j=await api("sync",{qs:"&since="+(force?0:S.ver)+"&tz="+encodeURIComponent(TZ)});showNotice(j.notice);if(j.same)return;
   S.ver=j.ver;S.people=j.people||{adults:[],kids:[]};S.hasKey=j.hasKey;S.hasIcs=j.hasIcs;S.code=j.code;S.members=j.members||[];S.me=j.me;
   ["ev","shop","rem","notes","chores","meals","rota"].forEach(c=>D[c]=j.data[c]||[]);D.photos=j.photos||[];D.ics=j.ics||[];renderAll()}
  catch(e){if(e.status===401){authed=false;showWelcome()}}finally{syncing=false}}
 setInterval(()=>{if(!document.hidden)sync()},15000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)sync()});
+function showNotice(t){const n=$("notice");if(!n)return;n.textContent=t||"";n.hidden=!t}
 /* ---------- welcome ---------- */
 function showWelcome(){$("welcome").classList.add("on");$("boot").classList.remove("on")}
 function nameOk(){const n=$("wname").value.trim();if(!n){$("werr").textContent="Please type your first name.";$("wname").focus();return null}return n}
@@ -159,4 +160,4 @@ arm($("wipebtn"),"",async()=>{try{await api("wipe",{body:{}});authed=false;D={ev
 arm($("codebtn"),"",async()=>{try{const j=await api("newcode",{body:{}});S.code=j.code;renderFam();toast("New code made. The old one no longer works.")}catch(e){toast(e.message)}});
 /* ---------- start ---------- */
 if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-(async()=>{try{const j=await api("me");S.support=j.support||"";S.video=j.video||"";if(j.authed){authed=true;$("boot").classList.remove("on");await sync(true)}else showWelcome()}catch(e){showWelcome();$("werr").textContent="Can't reach Wolf right now. Check your connection."}})();
+(async()=>{try{const j=await api("me");S.support=j.support||"";S.video=j.video||"";showNotice(j.notice);if(j.authed){authed=true;$("boot").classList.remove("on");await sync(true)}else showWelcome()}catch(e){showWelcome();$("werr").textContent="Can't reach Wolf right now. Check your connection."}})();

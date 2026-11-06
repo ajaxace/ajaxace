@@ -22,7 +22,7 @@ function fail(string $m, int $code = 400): never { out(['ok' => false, 'error' =
 $cfgFile = __DIR__ . '/config.php';
 if (!is_file($cfgFile)) {
     $cfg = ['data' => 'data', 'db' => 'wolf_' . bin2hex(random_bytes(8)) . '.sqlite', 'secret' => bin2hex(random_bytes(32)),
-            'support' => '', 'video' => '', 'app' => 'Wolf'];
+            'support' => '', 'video' => '', 'notice' => '', 'app' => 'Wolf'];
     @mkdir(__DIR__ . '/data', 0750, true);
     @file_put_contents(__DIR__ . '/data/.htaccess', "Require all denied\nDeny from all\n");
     @file_put_contents(__DIR__ . '/data/index.html', '');
@@ -148,8 +148,8 @@ if ($act === 'join' && $method === 'POST') {
 
 $me = who($db);
 if ($act === 'me') {
-    if (!$me) out(['ok' => true, 'authed' => false, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '']);
-    out(['ok' => true, 'authed' => true, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '']);
+    if (!$me) out(['ok' => true, 'authed' => false, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '', 'notice' => $cfg['notice'] ?? '']);
+    out(['ok' => true, 'authed' => true, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '', 'notice' => $cfg['notice'] ?? '']);
 }
 if (!$me) fail('Not signed in.', 401);
 $fam = $me['fam'];
@@ -266,12 +266,12 @@ if ($act === 'sync') {
     $tz = (string)($_GET['tz'] ?? '');
     if ($tz !== '' && $tz !== $F['tz'] && @timezone_open($tz)) { $db->prepare('UPDATE families SET tz=? WHERE id=?')->execute([$tz, $fam]); $F['tz'] = $tz; }
     if ($F['ics_url'] && time() - (int)$F['ics_ts'] > 1800) { refreshIcs($db, $F, $cfg['secret']); $F = famRow($db, $fam); }
-    if ($since === (int)$F['ver']) out(['ok' => true, 'same' => true]);
+    if ($since === (int)$F['ver']) out(['ok' => true, 'same' => true, 'notice' => $cfg['notice'] ?? '']);
     $data = []; foreach (COLS as $c) $data[$c] = getItems($db, $fam, $c);
     $photos = getItems($db, $fam, 'photos');
     $mc = $db->prepare('SELECT label,created FROM devices WHERE fam=?'); $mc->execute([$fam]);
     out(['ok' => true, 'ver' => (int)$F['ver'], 'data' => $data, 'photos' => $photos, 'ics' => json_decode($F['ics_cache'] ?: '[]', true), 'members' => $mc->fetchAll(PDO::FETCH_ASSOC),
-         'code' => $F['code'], 'people' => json_decode($F['people'] ?: '{}', true), 'hasKey' => (bool)$F['ai_key'], 'model' => $F['ai_model'], 'hasIcs' => (bool)$F['ics_url'], 'icsTs' => (int)$F['ics_ts'], 'me' => $me['label']]);
+         'code' => $F['code'], 'people' => json_decode($F['people'] ?: '{}', true), 'hasKey' => (bool)$F['ai_key'], 'model' => $F['ai_model'], 'hasIcs' => (bool)$F['ics_url'], 'icsTs' => (int)$F['ics_ts'], 'me' => $me['label'], 'notice' => $cfg['notice'] ?? '']);
 }
 if ($act === 'put' && $method === 'POST') {
     $b = body(); $c = (string)($b['col'] ?? ''); if (!in_array($c, COLS, true)) fail('Unknown list.');

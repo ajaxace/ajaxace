@@ -19,3 +19,11 @@ The first visit creates a `data` folder (database and photos) and a `config.php`
 
 ## Updating later
 Upload the new `index.html`, `app.js` and `api.php` over the old ones. Leave `data/` and `config.php` alone.
+
+## Telling families about maintenance
+Open `config.php` in File Manager and set `'notice' => 'Planned maintenance Sunday 2am to 3am (UK). Wolf may be unavailable.'`. A banner appears on every open Wolf within about 15 seconds. Set it back to `''` to remove it.
+
+## Free automatic checks (so you don't have to watch it)
+1. Sign up for a free uptime monitor (for example UptimeRobot).
+2. Add a monitor for `https://wolf.yourdomain.com/api.php?a=health`, checking every 5 minutes, and send alerts to your email.
+3. In hPanel, turn on auto-renew only after you've decided you want to keep paying. Put the renewal date in your calendar 60 days ahead.
