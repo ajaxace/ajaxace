@@ -55,3 +55,18 @@ Wolf does NOT: book anything, promise a pickup, give live train, taxi, cinema or
 
 ## Ideas to evaluate (unverified, test before building)
 Landlord compliance companion; separated-family mode; receipt and warranty vault; fridge photo to dinner plan; care-for-a-parent hub; expat and two-country families; creator cockpit for Jay's TikTok; school-email forwarding inbox. Trends: subscription fatigue (pay-once is a selling point), data privacy, voice-first apps, cost of living.
+
+## Pre-sign-up plan (Jay, 6 Nov 2026)
+Jay says he has already agreed with you to put the adverts out now, which starts a 30-day pre-sign-up period before the product goes live. Claude Code did not see that earlier discussion, so treat it as Jay's plan and confirm the details with him first: is it a FREE waiting list (no payment), or a PAID pre-order?
+
+Guardrails to build the plan around (UK):
+- Ads may only claim what Wolf really does today. Say "launching soon" and "join the waiting list" with a real launch date. The train, taxi and cinema scenes must NOT be used.
+- Take no payment until the product is live and tested, unless the terms and a clear delivery date are shown first. For paid pre-orders, goods and services should normally be delivered within 30 days unless another date is agreed, and buyers must be able to cancel and be refunded. Solicitor check.
+- Collecting emails needs a privacy notice, clear consent to be contacted, an unsubscribe link and the sender address (the virtual address). ICO registration should be done before collecting.
+- No fake scarcity or countdowns. "Free" needs the fair-use wording. Target 18+. Use the TikTok AI label. Jay approves every post before it goes out. Nothing is posted by Claude.
+
+Extra tasks for Claude Chat:
+A. Waiting-list page copy and sign-up form wording (consent line, privacy link, unsubscribe).
+B. Terms for the pre-sign-up period (free waiting list or paid pre-order, whichever Jay confirms).
+C. A 30-day timeline: weeks 1 to 4 posting plan, what to measure (sign-ups, cost per sign-up), what happens on day 30 (launch email, price, how to get started).
+D. Re-run the vetting gate on the pre-sign-up ads.
