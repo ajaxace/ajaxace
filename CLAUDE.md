@@ -14,4 +14,6 @@ Every session in this repo runs lean by default. Do not wait to be asked.
 
 10. Spelling is locked: MASKA (never Masca), TWIX, JAY. Series: Maska & Friends. Do not ask again.
 
+11. Never answer "can't" or "that doesn't work" and stop. Jay's standing order: do it or work round it with the tools that are allowed, then report what was done. If a route is blocked, try the next legitimate route in the same turn; only report a block after every allowed route is used, and say in one line what finished and what is left. Never bypass a security block or send Jay's files to outside services to get round one.
+
 Exceptions: safety rules and anything touching money, keys or property records are never shortened. If Jay asks for detail, give it in full.
