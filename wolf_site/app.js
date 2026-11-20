@@ -192,4 +192,4 @@ setInterval(drawPoll,800);
 addEventListener("resize",()=>{if($("t-draw").classList.contains("on"))sizeCv()});
 /* ---------- start ---------- */
 if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-(async()=>{try{const j=await api("me");S.support=j.support||"";S.video=j.video||"";showNotice(j.notice);if(j.authed){authed=true;$("boot").classList.remove("on");await sync(true)}else showWelcome()}catch(e){showWelcome();$("werr").textContent="Can't reach Wolf right now. Check your connection."}})();
+(async()=>{try{const j=await api("me");S.support=j.support||"";S.video=j.video||"";showNotice(j.notice);S.version=j.version||"";if($("wver"))$("wver").textContent=S.version?"Wolf "+S.version:"";if($("fver"))$("fver").textContent=S.version?"Wolf "+S.version:"";if($("wcontact"))$("wcontact").href=S.support?"mailto:"+S.support:"#";if(j.authed){authed=true;$("boot").classList.remove("on");await sync(true)}else showWelcome()}catch(e){showWelcome();$("werr").textContent="Can't reach Wolf right now. Check your connection."}})();

@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /api.php
+Disallow: /admin.html
+Disallow: /check.php
+Disallow: /guide/

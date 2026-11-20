@@ -3,6 +3,7 @@ declare(strict_types=1);
 /* Wolf family app: single-file JSON API (PHP 8 + SQLite). */
 error_reporting(E_ALL);
 ini_set('display_errors', '0');
+const WOLF_VERSION = '1.1.0';
 const COLS = ['ev','shop','rem','notes','chores','meals','rota'];
 const LIMIT_ITEM = 6000;
 const PHOTO_MAX = 7000000;
@@ -22,17 +23,20 @@ function fail(string $m, int $code = 400): never { out(['ok' => false, 'error' =
 $cfgFile = __DIR__ . '/config.php';
 if (!is_file($cfgFile)) {
     $cfg = ['data' => 'data', 'db' => 'wolf_' . bin2hex(random_bytes(8)) . '.sqlite', 'secret' => bin2hex(random_bytes(32)),
-            'support' => '', 'video' => '', 'notice' => '', 'app' => 'Wolf'];
-    @mkdir(__DIR__ . '/data', 0750, true);
+            'support' => '', 'video' => '', 'notice' => '', 'trust_proxy' => false, 'app' => 'Wolf'];
+    @mkdir(__DIR__ . '/data', 0755, true);
     @file_put_contents(__DIR__ . '/data/.htaccess', "Require all denied\nDeny from all\n");
     @file_put_contents(__DIR__ . '/data/index.html', '');
-    @mkdir(__DIR__ . '/data/photos', 0750, true);
+    @mkdir(__DIR__ . '/data/photos', 0755, true);
     file_put_contents($cfgFile, "<?php\nreturn " . var_export($cfg, true) . ";\n");
 }
 $cfg = require $cfgFile;
-if (empty($cfg['admin'])) { $cfg['admin'] = bin2hex(random_bytes(16)); @file_put_contents($cfgFile, "<?php\nreturn " . var_export($cfg, true) . ";\n"); }
+if (empty($cfg['admin'])) { $cfg['admin'] = bin2hex(random_bytes(16)); @file_put_contents($cfgFile, "<?php\nreturn " . var_export($cfg, true) . ";\n"); if (function_exists('opcache_invalidate')) @opcache_invalidate($cfgFile, true); }
 $DATA = __DIR__ . '/' . $cfg['data'];
-if (!is_dir($DATA . '/photos')) { @mkdir($DATA . '/photos', 0750, true); }
+if (!is_dir($DATA . '/photos')) { @mkdir($DATA . '/photos', 0755, true); }
+ini_set('log_errors', '1'); ini_set('error_log', $DATA . '/error.log');
+set_exception_handler(function ($e) { error_log(substr('EXC ' . get_class($e) . ': ' . $e->getMessage() . ' @' . basename($e->getFile()) . ':' . $e->getLine(), 0, 300)); fail('Something went wrong on our side. Try again in a minute.', 500); });
+register_shutdown_function(function () { $e = error_get_last(); if ($e && in_array($e['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR], true)) error_log(substr('FATAL ' . $e['message'] . ' @' . basename($e['file']) . ':' . $e['line'], 0, 300)); });
 try {
     $db = new PDO('sqlite:' . $DATA . '/' . $cfg['db']);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -43,7 +47,8 @@ try {
     CREATE INDEX IF NOT EXISTS items_fam ON items(fam, col);
     CREATE TABLE IF NOT EXISTS attempts(ip TEXT, kind TEXT, ts INT);
     CREATE TABLE IF NOT EXISTS usage(day TEXT, fam TEXT, ai INT DEFAULT 0, tin INT DEFAULT 0, tout INT DEFAULT 0, PRIMARY KEY(day, fam));
-    CREATE TABLE IF NOT EXISTS feedback(id INTEGER PRIMARY KEY AUTOINCREMENT, fam TEXT, ts INT, txt TEXT);");
+    CREATE TABLE IF NOT EXISTS feedback(id INTEGER PRIMARY KEY AUTOINCREMENT, fam TEXT, ts INT, txt TEXT);
+    CREATE TABLE IF NOT EXISTS waitlist(id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE, ts INT, src TEXT, consent TEXT);");
     try { $db->exec('ALTER TABLE families ADD COLUMN draw_seq INT DEFAULT 0'); } catch (Throwable $e) {}
 } catch (Throwable $e) { fail('Storage is not available.', 500); }
 
@@ -51,6 +56,7 @@ $act = $_GET['a'] ?? '';
 $method = $_SERVER['REQUEST_METHOD'];
 $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
 $ip = $_SERVER['REMOTE_ADDR'] ?? '0';
+if (!empty($cfg['trust_proxy']) && !empty($_SERVER['HTTP_CF_CONNECTING_IP'])) $ip = substr((string)$_SERVER['HTTP_CF_CONNECTING_IP'], 0, 45);
 
 function body(): array {
     $raw = file_get_contents('php://input');
@@ -128,10 +134,21 @@ function getItems(PDO $db, string $fam, string $col): array {
 }
 
 /* ---------- public actions ---------- */
-if ($act === 'health') out(['ok' => true, 'php' => PHP_VERSION, 'sqlite' => true, 'openssl' => function_exists('openssl_encrypt'), 'curl' => function_exists('curl_init')]);
+if ($act === 'health') out(['ok' => true, 'version' => WOLF_VERSION, 'php' => PHP_VERSION, 'sqlite' => true, 'openssl' => function_exists('openssl_encrypt'), 'curl' => function_exists('curl_init')]);
 
 if ($method === 'POST' && ($_SERVER['HTTP_X_WOLF'] ?? '') !== '1' && $act !== '') fail('Bad request.', 403);
 
+if ($act === 'waitlist' && $method === 'POST') {
+    $b = body();
+    if (!empty($b['website'])) out(['ok' => true]);
+    if (tooMany($db, $ip, 'waitlist', 6, 3600)) fail('Too many tries. Please try again later.', 429);
+    note($db, $ip, 'waitlist');
+    $e = strtolower(trim((string)($b['email'] ?? '')));
+    if (!filter_var($e, FILTER_VALIDATE_EMAIL) || strlen($e) > 120) fail('Please enter a valid email address.');
+    if (($b['consent'] ?? false) !== true) fail('Please tick the box to agree to be emailed.');
+    $db->prepare('INSERT OR IGNORE INTO waitlist(email,ts,src,consent) VALUES(?,?,?,?)')->execute([$e, time(), substr(preg_replace('/[^A-Za-z0-9_\-]/', '', (string)($b['src'] ?? '')), 0, 30), 'consent-v1']);
+    out(['ok' => true]);
+}
 if ($act === 'create' && $method === 'POST') {
     if (tooMany($db, $ip, 'create', 6, 3600)) fail('Too many new families from this connection. Try again later.', 429);
     note($db, $ip, 'create');
@@ -152,7 +169,7 @@ if ($act === 'join' && $method === 'POST') {
 
 
 /* ---------- owner-only stats (counts only, never family content) ---------- */
-if ($act === 'stats' || $act === 'backup') {
+if (in_array($act, ['stats', 'backup', 'adminsave', 'waitlist_list', 'waitlist_csv', 'waitlist_del'], true)) {
     if (tooMany($db, $ip, 'admin', 10, 3600)) fail('Too many tries.', 429);
     $tok = (string)($_SERVER['HTTP_X_ADMIN'] ?? '');
     if (!hash_equals((string)$cfg['admin'], $tok)) { note($db, $ip, 'admin'); fail('Wrong admin code.', 403); }
@@ -161,6 +178,26 @@ if ($act === 'stats' || $act === 'backup') {
         $db->exec("VACUUM INTO '" . str_replace("'", "''", $tmp) . "'");
         header('Content-Type: application/octet-stream'); header('Content-Disposition: attachment; filename="wolf-backup-' . date('Y-m-d') . '.sqlite"'); header('Content-Length: ' . filesize($tmp));
         readfile($tmp); @unlink($tmp); exit;
+    }
+    if ($act === 'adminsave' && $method === 'POST') {
+        $b = body(); $c2 = $cfg;
+        if (isset($b['support'])) { $s = trim((string)$b['support']); if ($s !== '' && !filter_var($s, FILTER_VALIDATE_EMAIL)) fail('That support email does not look right.'); $c2['support'] = $s; }
+        if (isset($b['video'])) { $v = trim((string)$b['video']); if ($v !== '' && !preg_match('#^https://#i', $v)) fail('The video link must start with https://'); $c2['video'] = substr($v, 0, 300); }
+        if (isset($b['notice'])) { $c2['notice'] = mb_substr(trim((string)$b['notice']), 0, 200); }
+        if (file_put_contents($cfgFile, "<?php\nreturn " . var_export($c2, true) . ";\n") === false) fail('Could not save. Check the folder is writable.', 500);
+        if (function_exists('opcache_invalidate')) @opcache_invalidate($cfgFile, true);
+        out(['ok' => true]);
+    }
+    if ($act === 'waitlist_list') {
+        $r = $db->query('SELECT email, ts, src FROM waitlist ORDER BY id DESC LIMIT 5000')->fetchAll(PDO::FETCH_ASSOC);
+        out(['ok' => true, 'count' => count($r), 'rows' => array_slice($r, 0, 50)]);
+    }
+    if ($act === 'waitlist_csv') {
+        header('Content-Type: text/csv; charset=utf-8'); header('Content-Disposition: attachment; filename="wolf-waitlist-' . date('Y-m-d') . '.csv"');
+        echo "email,date,source\n"; foreach ($db->query('SELECT email, ts, src FROM waitlist ORDER BY id')->fetchAll(PDO::FETCH_ASSOC) as $r) echo $r['email'] . ',' . date('Y-m-d', (int)$r['ts']) . ',' . $r['src'] . "\n"; exit;
+    }
+    if ($act === 'waitlist_del' && $method === 'POST') {
+        $e = strtolower(trim((string)(body()['email'] ?? ''))); $db->prepare('DELETE FROM waitlist WHERE email=?')->execute([$e]); out(['ok' => true]);
     }
     $q = fn(string $s, array $p = []) => (function () use ($db, $s, $p) { $st = $db->prepare($s); $st->execute($p); return $st; })();
     $now = time(); $d30 = gmdate('Y-m-d', $now - 30 * 86400); $d7 = $now - 7 * 86400;
@@ -185,13 +222,15 @@ if ($act === 'stats' || $act === 'backup') {
     $tot = ['ai' => 0, 'tin' => 0, 'tout' => 0]; foreach ($use as $u) { $tot['ai'] += (int)$u['ai']; $tot['tin'] += (int)$u['tin']; $tot['tout'] += (int)$u['tout']; }
     $fb = $q('SELECT ts, fam, txt FROM feedback ORDER BY id DESC LIMIT 50')->fetchAll(PDO::FETCH_ASSOC);
     foreach ($fb as &$b) $b['fam'] = substr(sha1($b['fam']), 0, 6); unset($b);
-    out(['ok' => true, 'funnel' => $f, 'ai' => $tot + ['today' => (int)$today], 'storage' => ['dbMB' => round((int)@filesize($DATA . '/' . $cfg['db']) / 1048576, 1), 'photosMB' => round($pTotal / 1048576, 1), 'diskFreeGB' => round((float)@disk_free_space($DATA) / 1073741824, 1), 'diskTotalGB' => round((float)@disk_total_space($DATA) / 1073741824, 1)], 'families' => $rows, 'feedback' => $fb]);
+    out(['ok' => true, 'funnel' => $f, 'ai' => $tot + ['today' => (int)$today], 'storage' => ['dbMB' => round((int)@filesize($DATA . '/' . $cfg['db']) / 1048576, 1), 'photosMB' => round($pTotal / 1048576, 1), 'diskFreeGB' => round((float)@disk_free_space($DATA) / 1073741824, 1), 'diskTotalGB' => round((float)@disk_total_space($DATA) / 1073741824, 1)], 'families' => $rows, 'feedback' => $fb,
+         'version' => WOLF_VERSION, 'waitlist' => (int)$db->query('SELECT COUNT(*) FROM waitlist')->fetchColumn(), 'settings' => ['support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '', 'notice' => $cfg['notice'] ?? ''],
+         'errors' => is_file($DATA . '/error.log') ? array_slice(array_filter(explode("\n", (string)@file_get_contents($DATA . '/error.log', false, null, max(0, (int)@filesize($DATA . '/error.log') - 6000)))), -15) : []]);
 }
 
 $me = who($db);
 if ($act === 'me') {
-    if (!$me) out(['ok' => true, 'authed' => false, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '', 'notice' => $cfg['notice'] ?? '']);
-    out(['ok' => true, 'authed' => true, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '', 'notice' => $cfg['notice'] ?? '']);
+    if (!$me) out(['ok' => true, 'authed' => false, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '', 'notice' => $cfg['notice'] ?? '', 'version' => WOLF_VERSION]);
+    out(['ok' => true, 'authed' => true, 'support' => $cfg['support'] ?? '', 'video' => $cfg['video'] ?? '', 'notice' => $cfg['notice'] ?? '', 'version' => WOLF_VERSION]);
 }
 if (!$me) fail('Not signed in.', 401);
 $fam = $me['fam'];

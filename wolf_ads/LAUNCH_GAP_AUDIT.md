@@ -50,3 +50,7 @@ New finding (important):
 - The prototype recording (shots/screen_8.mp4) shows scripted answers. Re-record from the real site once it is live, showing only what works: calendar link events, lists, reminders, notes, chores, voice.
 
 Still open: Hostinger plan and upload, ICO registration, privacy notice, terms, Stripe, ad link, quota figure for fair use, solicitor check, testing on real phones.
+
+## Update 20 Nov: day-one pack ready
+wolf_site now has: pre-flight check page (check.php), owner dashboard settings (support email, video link, maintenance banner), waiting-list page with consent and admin CSV export, draft privacy and terms pages (legal/*.md, show a red DRAFT banner until replaced), error log, version stamp, DEPLOY.md runbook, TEST_PLAN.md (26 tests), RESTORE.md. Live drawing board added. Bug fixed: config changes were delayed by PHP caching.
+Still needed from Jay or Claude Chat: final privacy and terms text, virtual address, ICO registration, Stripe, hosting purchase, real-phone test.

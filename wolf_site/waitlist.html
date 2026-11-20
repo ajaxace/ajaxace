@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en-GB"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Join the Wolf waiting list</title>
+<!-- DRAFT COPY: run the Wolf vetting gate and get Jay's OK before sharing this link. -->
+<style>:root{color-scheme:dark;--navy:#0b1430;--card:#17254a;--line:#25356a;--or:#fca311;--cy:#2ec5ff;--mut:#9fb0d8}*{box-sizing:border-box}body{margin:0;background:radial-gradient(120% 50% at 50% 0,#16285a 0,#0b1430 55%);color:#f2f5ff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}main{max-width:560px;margin:0 auto;padding:28px 16px 60px;text-align:center}img{width:96px;height:96px;border-radius:50%;box-shadow:0 0 36px #fca31155}h1{font-size:30px;margin:12px 0 4px}.lead{color:var(--mut);margin:0 0 18px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;text-align:left;margin:14px 0}.card li{margin:6px 0}form{display:flex;flex-direction:column;gap:10px;margin-top:8px}input[type=email]{padding:15px;border-radius:14px;border:1px solid var(--line);background:#14203f;color:#f2f5ff;font-size:16px;width:100%}label{font-size:13.5px;color:var(--mut);text-align:left;display:flex;gap:8px}button{padding:15px;border:0;border-radius:14px;background:var(--or);color:#2b1a00;font-size:17px;font-weight:800;cursor:pointer}.hp{position:absolute;left:-9999px}#msg{min-height:22px;font-size:14px}.small{font-size:12.5px;color:var(--mut)}a{color:var(--cy)}</style></head><body><main>
+<img src="icon-192.png" alt="">
+<h1>Wolf is launching soon</h1>
+<p class="lead">Your family's own AI assistant. One calendar, one shopping list and one place for the whole family. Join the waiting list and we'll email you when it opens.</p>
+<div class="card"><b>What Wolf does</b><ul><li>Shared family calendar (from your calendar's private link) and lists</li><li>Reminders, notes, chores and pocket money, dinner plan, school-run rota</li><li>Family photo storage and a live drawing board for two or more phones</li><li>Talk to it with your voice</li></ul><span class="small">Wolf does not book anything, and it does not give live train, taxi or cinema times.</span></div>
+<form id="f" autocomplete="on"><input type="email" id="e" placeholder="Your email address" required maxlength="120" autocomplete="email"><input class="hp" type="text" id="w" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label><input type="checkbox" id="c"><span>I agree to be emailed about Wolf's launch. I can unsubscribe at any time. See the <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span></label>
+<button id="b">Join the waiting list</button><div id="msg" role="status"></div></form>
+<p class="small">Account holder must be 18+. Supplied by a third-party partner. Sold by Ajax. <a href="terms.html" target="_blank" rel="noopener">Terms</a></p>
+<script>
+document.getElementById("f").onsubmit=async function(ev){ev.preventDefault();var m=document.getElementById("msg");m.style.color="";m.textContent="";
+ if(!document.getElementById("c").checked){m.style.color="#ff8f9b";m.textContent="Please tick the box to agree to be emailed.";return}
+ document.getElementById("b").disabled=true;
+ try{var r=await fetch("api.php?a=waitlist",{method:"POST",headers:{"Content-Type":"application/json","X-Wolf":"1"},body:JSON.stringify({email:document.getElementById("e").value,website:document.getElementById("w").value,consent:true,src:(new URLSearchParams(location.search)).get("s")||""})});
+  var j=await r.json().catch(function(){return{}});if(!r.ok||j.ok===false)throw new Error(j.error||"Something went wrong. Please try again.");
+  m.style.color="#14e0c0";m.textContent="You're on the list. Thank you!";document.getElementById("f").reset()}
+ catch(e){m.style.color="#ff8f9b";m.textContent=e.message}document.getElementById("b").disabled=false};
+</script></main></body></html>

@@ -25,6 +25,12 @@ input,button{font:inherit}input{padding:10px;border-radius:10px;border:1px solid
 <div class="grid2" id="inputs"></div><div class="res" id="res"></div>
 <h2>Families (anonymous)</h2><div class="wrap"><table id="fam"></table></div>
 <h2>What families told us</h2><div id="fb"></div>
+<h2>Settings (no file editing needed)</h2>
+<div class="grid2"><label>Support email (shown to families)<input id="s_sup" type="email" placeholder="support@yourdomain.com"></label><label>Set-up video link (https://)<input id="s_vid" placeholder="https://youtu.be/..."></label><label style="grid-column:1/-1">Maintenance banner (leave empty for none)<input id="s_not" maxlength="200" placeholder="Planned maintenance Sunday 2am to 3am (UK)."></label></div>
+<div style="margin-top:8px"><button id="s_save">Save settings</button> <span class="note" id="s_msg"></span></div>
+<h2>Waiting list</h2><div class="tiles" id="wl"></div><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="alt" id="wl_csv">Download emails (CSV)</button></div>
+<div class="grid2" style="margin-top:8px"><label>Remove one email (if someone asks)<input id="wl_e" type="email" placeholder="name@example.com"></label></div><div style="margin-top:6px"><button class="alt" id="wl_del">Remove this email</button> <span class="note" id="wl_msg"></span></div>
+<h2>Problems on the server (last lines)</h2><div class="fb" id="errs"></div>
 <h2>Backup</h2><p class="note">Downloads the database only (not photos). The secret key stays in config.php, so back that up too. Keep both private.</p><button class="alt" id="bk">Download database backup</button>
 </div>
 <script>
@@ -41,8 +47,8 @@ function render(j){D=j;$("login").hidden=true;$("dash").hidden=false;const f=j.f
  const rows=j.families.slice().sort((x,y)=>y.last-x.last);
  $("fam").innerHTML="<tr><th>Family</th><th>Phones</th><th>Last seen</th><th>AI msgs 30d</th><th>Tokens 30d</th><th>Photos MB</th><th>Items</th></tr>"+rows.map(r=>`<tr><td>${r.f}</td><td>${r.phones}</td><td>${r.last?new Date(r.last*1000).toLocaleDateString("en-GB"):"–"}</td><td>${r.ai30}</td><td>${fmt(r.tin+r.tout)}</td><td>${r.photosMB}</td><td>${r.items}</td></tr>`).join("");
  $("fb").innerHTML=j.feedback.length?j.feedback.map(b=>`<div class="fb"></div>`).join(""):'<p class="note">Nothing yet.</p>';
- [...$("fb").children].forEach((d,i)=>{const b=j.feedback[i];d.textContent=b.txt;const s2=document.createElement("small");s2.textContent=new Date(b.ts*1000).toLocaleString("en-GB")+" · family "+b.fam;d.appendChild(s2)});
- inputs();calc()}
+ if(j.feedback.length)[...$("fb").children].forEach((d,i)=>{const b=j.feedback[i];if(!b)return;d.textContent=b.txt;const s2=document.createElement("small");s2.textContent=new Date(b.ts*1000).toLocaleString("en-GB")+" · family "+b.fam;d.appendChild(s2)});
+ settingsUI(j);inputs();calc()}
 const DEF={host:13,price:69,subs:0,plus:5,fee:1.5,fixed:0.20,aiIn:0.30,aiOut:2.50,usd:0.79,share:100,newfam:0,cac:0};
 function inputs(){let v=DEF;try{v=Object.assign({},DEF,JSON.parse(localStorage.getItem("wolf_calc")||"{}"))}catch(e){}
  const L={host:"Hosting £ per month (use renewal price)",newfam:"New £69 sales this month",price:"One-off price £",cac:"Ad cost per sale £",subs:"Paying Plus subscribers",plus:"Plus price £ per month",share:"% of families using Wolf's own AI",aiIn:"AI $ per 1M input tokens",aiOut:"AI $ per 1M output tokens",usd:"£ per $",fee:"Card fee %",fixed:"Card fee fixed £"};
@@ -58,6 +64,14 @@ function calc(){const v=val(),a=D.ai,fams=Math.max(1,D.funnel.families);
  const be=perSub>0?Math.ceil(v.host/perSub):null;
  const R=(l,x,c)=>`<div><span>${l}</span><span class="${c||""}">${x}</span></div>`;
  $("res").innerHTML=R("One-off sales after card fees",gbp(oneoff))+R("Ad spend",gbp(-cacT))+R("Plus subscriptions after card fees",gbp(sub))+R("Hosting",gbp(-v.host))+R("AI if Wolf pays (measured 30 days, scaled)",gbp(-aiCost))+R("Plus subscribers needed to cover hosting",be===null?"–":be)+R("Net this month",gbp(net),net>=0?"good":"bad")}
+function settingsUI(j){const s=j.settings||{};if(document.activeElement.id!=="s_sup")$("s_sup").value=s.support||"";if(document.activeElement.id!=="s_vid")$("s_vid").value=s.video||"";if(document.activeElement.id!=="s_not")$("s_not").value=s.notice||"";
+ $("wl").innerHTML='<div class="t"><b>'+fmt(j.waitlist||0)+'</b><span>emails on the waiting list</span></div><div class="t"><b>'+esc2(j.version||"")+'</b><span>Wolf version running</span></div>';
+ $("errs").textContent=(j.errors&&j.errors.length)?j.errors.join("\n"):"No problems recorded."}
+const esc2=s=>String(s).replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));
+const HP=()=>Object.assign({"X-Wolf":"1","Content-Type":"application/json"},H());
+$("s_save").onclick=async()=>{$("s_msg").textContent="Saving…";const r=await fetch("api.php?a=adminsave",{method:"POST",headers:HP(),body:JSON.stringify({support:$("s_sup").value,video:$("s_vid").value,notice:$("s_not").value})});const j=await r.json().catch(()=>({}));$("s_msg").textContent=(r.ok&&j.ok)?"Saved.":(j.error||"Could not save.")};
+$("wl_csv").onclick=async()=>{const r=await fetch("api.php?a=waitlist_csv",{headers:H()});if(!r.ok){alert("Could not download.");return}const b=await r.blob(),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="wolf-waitlist-"+new Date().toISOString().slice(0,10)+".csv";a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)};
+$("wl_del").onclick=async()=>{const e=$("wl_e").value.trim();if(!e)return;const r=await fetch("api.php?a=waitlist_del",{method:"POST",headers:HP(),body:JSON.stringify({email:e})});$("wl_msg").textContent=r.ok?"Removed.":"Could not remove.";$("wl_e").value="";load()};
 $("go").onclick=async()=>{sessionStorage.setItem("wolf_admin",$("tok").value.trim());$("msg").textContent="";await load()};
 $("bk").onclick=async()=>{const r=await fetch("api.php?a=backup",{headers:H()});if(!r.ok){alert("Backup failed.");return}const b=await r.blob(),u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="wolf-backup-"+new Date().toISOString().slice(0,10)+".sqlite";a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)};
 if(sessionStorage.getItem("wolf_admin"))load();
