@@ -35,7 +35,7 @@ let D=null;
 function render(j){D=j;$("login").hidden=true;$("dash").hidden=false;const f=j.funnel,a=j.ai;
  const T=(n,l)=>`<div class="t"><b>${n}</b><span>${l}</span></div>`;
  $("tiles").innerHTML=T(fmt(f.families),"families")+T(fmt(f.active7),"active in 7 days")+T(fmt(f.active30),"active in 30 days")+T(fmt(a.today),"AI messages today")+T(fmt(a.ai),"AI messages, 30 days")+T(fmt(a.tin+a.tout),"AI tokens, 30 days");
- const steps=[["AI key added",f.key],["Names added",f.names],["Calendar connected",f.ics],["Two or more phones",f.multi],["Uses rota",f.rota],["Uses chores",f.chores],["Uses meals",f.meals],["Uses notes",f.notes],["Uses photos",f.photos]];
+ const steps=[["AI key added",f.key],["Names added",f.names],["Calendar connected",f.ics],["Two or more phones",f.multi],["Uses rota",f.rota],["Uses chores",f.chores],["Uses meals",f.meals],["Uses notes",f.notes],["Uses photos",f.photos],["Uses drawing board",f.draw]];
  $("funnel").innerHTML=f.families?steps.map(([l,n])=>`<div class="bar"><div class="l"><span>${l}</span><span>${n} of ${f.families} (${Math.round(100*n/f.families)}%)</span></div><div class="b"><i style="width:${100*n/f.families}%"></i></div></div>`).join(""):'<p class="note">No families yet.</p>';
  const s=j.storage;$("store").innerHTML=T(s.dbMB+" MB","database")+T(s.photosMB+" MB","photos")+T(s.diskFreeGB+" GB","disk free")+T(s.diskTotalGB?Math.round(100*(s.dbMB+s.photosMB)/1024/s.diskTotalGB)+"%":"–","of disk used by Wolf");
  const rows=j.families.slice().sort((x,y)=>y.last-x.last);

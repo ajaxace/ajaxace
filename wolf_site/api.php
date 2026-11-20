@@ -37,13 +37,14 @@ try {
     $db = new PDO('sqlite:' . $DATA . '/' . $cfg['db']);
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $db->exec('PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;');
-    $db->exec("CREATE TABLE IF NOT EXISTS families(id TEXT PRIMARY KEY, code TEXT UNIQUE, created INT, ver INT DEFAULT 1, ai_key TEXT, ai_model TEXT, ics_url TEXT, ics_cache TEXT, ics_ts INT DEFAULT 0, people TEXT, tz TEXT, ai_day TEXT, ai_count INT DEFAULT 0);
+    $db->exec("CREATE TABLE IF NOT EXISTS families(id TEXT PRIMARY KEY, code TEXT UNIQUE, created INT, ver INT DEFAULT 1, ai_key TEXT, ai_model TEXT, ics_url TEXT, ics_cache TEXT, ics_ts INT DEFAULT 0, people TEXT, tz TEXT, ai_day TEXT, ai_count INT DEFAULT 0, draw_seq INT DEFAULT 0);
     CREATE TABLE IF NOT EXISTS devices(token_hash TEXT PRIMARY KEY, fam TEXT, label TEXT, created INT, seen INT);
     CREATE TABLE IF NOT EXISTS items(id TEXT PRIMARY KEY, fam TEXT, col TEXT, data TEXT, ts INT);
     CREATE INDEX IF NOT EXISTS items_fam ON items(fam, col);
     CREATE TABLE IF NOT EXISTS attempts(ip TEXT, kind TEXT, ts INT);
     CREATE TABLE IF NOT EXISTS usage(day TEXT, fam TEXT, ai INT DEFAULT 0, tin INT DEFAULT 0, tout INT DEFAULT 0, PRIMARY KEY(day, fam));
     CREATE TABLE IF NOT EXISTS feedback(id INTEGER PRIMARY KEY AUTOINCREMENT, fam TEXT, ts INT, txt TEXT);");
+    try { $db->exec('ALTER TABLE families ADD COLUMN draw_seq INT DEFAULT 0'); } catch (Throwable $e) {}
 } catch (Throwable $e) { fail('Storage is not available.', 500); }
 
 $act = $_GET['a'] ?? '';
@@ -171,15 +172,15 @@ if ($act === 'stats' || $act === 'backup') {
     $byFam = []; foreach ($cnt as $r) $byFam[$r['fam']][$r['col']] = (int)$r['n'];
     $pdir = $DATA . '/photos/'; $pBytes = []; $pTotal = 0;
     foreach (glob($pdir . '*') ?: [] as $f) { $fam = explode('_', basename($f))[0]; $s = (int)@filesize($f); $pBytes[$fam] = ($pBytes[$fam] ?? 0) + $s; $pTotal += $s; }
-    $rows = []; $f = ['families' => count($fams), 'key' => 0, 'ics' => 0, 'names' => 0, 'multi' => 0, 'chores' => 0, 'meals' => 0, 'notes' => 0, 'photos' => 0, 'rota' => 0, 'active7' => 0, 'active30' => 0];
+    $rows = []; $f = ['families' => count($fams), 'key' => 0, 'ics' => 0, 'names' => 0, 'multi' => 0, 'chores' => 0, 'meals' => 0, 'notes' => 0, 'photos' => 0, 'rota' => 0, 'draw' => 0, 'active7' => 0, 'active30' => 0];
     foreach ($fams as $x) {
         $id = $x['id']; $p = json_decode($x['people'] ?: '{}', true) ?: []; $c = $byFam[$id] ?? [];
         if ($x['ai_key']) $f['key']++; if ($x['ics_url']) $f['ics']++; if (!empty($p['adults']) || !empty($p['kids'])) $f['names']++;
         if (($dev[$id]['n'] ?? 0) > 1) $f['multi']++;
-        foreach (['chores', 'meals', 'notes', 'photos', 'rota'] as $k) if (!empty($c[$k])) $f[$k]++;
+        foreach (['chores', 'meals', 'notes', 'photos', 'rota', 'draw'] as $k) if (!empty($c[$k])) $f[$k]++;
         $last = (int)($dev[$id]['last'] ?? 0); if ($last > $d7) $f['active7']++; if ($last > $now - 30 * 86400) $f['active30']++;
         $rows[] = ['f' => substr(sha1($id), 0, 6), 'created' => (int)$x['created'], 'phones' => (int)($dev[$id]['n'] ?? 0), 'last' => $last, 'ai30' => (int)($use[$id]['ai'] ?? 0), 'tin' => (int)($use[$id]['tin'] ?? 0), 'tout' => (int)($use[$id]['tout'] ?? 0),
-                   'photosMB' => round(($pBytes[$id] ?? 0) / 1048576, 1), 'items' => array_sum($c)];
+                   'photosMB' => round(($pBytes[$id] ?? 0) / 1048576, 1), 'items' => array_sum($c) - ($c['draw'] ?? 0)];
     }
     $tot = ['ai' => 0, 'tin' => 0, 'tout' => 0]; foreach ($use as $u) { $tot['ai'] += (int)$u['ai']; $tot['tin'] += (int)$u['tin']; $tot['tout'] += (int)$u['tout']; }
     $fb = $q('SELECT ts, fam, txt FROM feedback ORDER BY id DESC LIMIT 50')->fetchAll(PDO::FETCH_ASSOC);
@@ -357,6 +358,33 @@ if ($act === 'img') {
     header('Content-Type: ' . ['jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', 'gif' => 'image/gif'][pathinfo($p, PATHINFO_EXTENSION)]);
     header('Cache-Control: private, max-age=86400'); header('X-Content-Type-Options: nosniff'); header('Content-Length: ' . filesize($p)); readfile($p); exit;
 }
+if ($act === 'draw') {
+    $since = (int)($_GET['since'] ?? 0);
+    $st = $db->prepare("SELECT data FROM items WHERE fam=? AND col='draw' AND json_extract(data,'$.n') > CAST(? AS INTEGER) ORDER BY json_extract(data,'$.n') LIMIT 400");
+    $st->execute([$fam, $since]); $rows = []; $max = $since;
+    foreach ($st->fetchAll(PDO::FETCH_COLUMN) as $j) { $d = json_decode($j, true); if (!$d) continue; $rows[] = $d; $max = max($max, (int)$d['n']); }
+    out(['ok' => true, 'rows' => $rows, 'max' => $max]);
+}
+if ($act === 'drawput' && $method === 'POST') {
+    if (tooMany($db, $ip, 'draw', 1200, 60)) fail('Slow down a little.', 429);
+    note($db, $ip, 'draw');
+    $b = body(); $pts = $b['pts'] ?? [];
+    if (!is_array($pts) || count($pts) < 1 || count($pts) > 90) fail('Bad stroke.');
+    $clean = []; foreach ($pts as $p) { if (!is_array($p) || count($p) < 2) fail('Bad stroke.'); $clean[] = [max(0, min(1000, (int)$p[0])), max(0, min(1000, (int)$p[1]))]; }
+    $c = (string)($b['c'] ?? '#ffffff'); if (!preg_match('/^#[0-9a-fA-F]{6}$/', $c)) $c = '#ffffff';
+    $w = max(1, min(60, (int)($b['w'] ?? 4))); $s = substr(preg_replace('/[^A-Za-z0-9]/', '', (string)($b['s'] ?? '')), 0, 16);
+    $n = $db->prepare("SELECT COUNT(*) FROM items WHERE fam=? AND col='draw'"); $n->execute([$fam]);
+    if ((int)$n->fetchColumn() > 3000) fail('The board is full. Clear it to carry on.');
+    $db->prepare('UPDATE families SET draw_seq=draw_seq+1 WHERE id=?')->execute([$fam]); $seq = (int)famRow($db, $fam)['draw_seq'];
+    $db->prepare('INSERT INTO items VALUES(?,?,?,?,?)')->execute([bin2hex(random_bytes(6)), $fam, 'draw', json_encode(['n' => $seq, 's' => $s, 'c' => $c, 'w' => $w, 'p' => $clean]), time()]);
+    out(['ok' => true, 'n' => $seq]);
+}
+if ($act === 'drawclear' && $method === 'POST') {
+    $db->prepare("DELETE FROM items WHERE fam=? AND col='draw'")->execute([$fam]);
+    $db->prepare('UPDATE families SET draw_seq=draw_seq+1 WHERE id=?')->execute([$fam]); $seq = (int)famRow($db, $fam)['draw_seq'];
+    $db->prepare('INSERT INTO items VALUES(?,?,?,?,?)')->execute([bin2hex(random_bytes(6)), $fam, 'draw', json_encode(['n' => $seq, 'clear' => 1]), time()]);
+    out(['ok' => true]);
+}
 if ($act === 'people' && $method === 'POST') {
     $b = body(); $l = fn($x) => array_values(array_slice(array_filter(array_map(fn($s) => mb_substr(trim((string)$s), 0, 24), is_array($x) ? $x : []), 'strlen'), 0, 8));
     $db->prepare('UPDATE families SET people=? WHERE id=?')->execute([json_encode(['adults' => $l($b['adults'] ?? []), 'kids' => $l($b['kids'] ?? [])]), $fam]); bump($db, $fam); out(['ok' => true]);
@@ -450,11 +478,11 @@ if ($act === 'ai' && $method === 'POST') {
             case 'add_note': addItem($db, $fam, 'notes', ['t' => (string)($a['text'] ?? ''), 'ts' => time() * 1000, 'by' => 'Wolf']); return 'Added';
             case 'add_chore': addItem($db, $fam, 'chores', ['t' => (string)($a['title'] ?? ''), 'who' => (string)($a['who'] ?? ''), 'v' => (int)round(((float)($a['pounds'] ?? 0)) * 100), 'x' => 0, 'paid' => 0, 'by' => 'Wolf']); return 'Added';
             case 'set_meal': $d = $days[strtolower(substr((string)($a['day'] ?? ''), 0, 3))] ?? null; if ($d === null) return 'Unknown day';
-                $st = $db->prepare("SELECT id FROM items WHERE fam=? AND col='meals' AND json_extract(data,'$.day')=?"); $st->execute([$fam, $d]); $id = $st->fetchColumn();
+                $st = $db->prepare("SELECT id FROM items WHERE fam=? AND col='meals' AND json_extract(data,'$.day')=CAST(? AS INTEGER)"); $st->execute([$fam, $d]); $id = $st->fetchColumn();
                 $dat = json_encode(['day' => $d, 't' => mb_substr((string)($a['meal'] ?? ''), 0, 80), 'ing' => mb_substr((string)($a['ingredients'] ?? ''), 0, 300)], JSON_UNESCAPED_UNICODE);
                 if ($id) { $db->prepare('UPDATE items SET data=? WHERE id=?')->execute([$dat, $id]); bump($db, $fam); } else addItem($db, $fam, 'meals', json_decode($dat, true)); return 'Set';
             case 'set_pickup': $d = $days[strtolower(substr((string)($a['day'] ?? ''), 0, 3))] ?? null; if ($d === null || $d > 4) return 'Weekdays only';
-                $st = $db->prepare("SELECT id FROM items WHERE fam=? AND col='rota' AND json_extract(data,'$.day')=?"); $st->execute([$fam, $d]); $id = $st->fetchColumn();
+                $st = $db->prepare("SELECT id FROM items WHERE fam=? AND col='rota' AND json_extract(data,'$.day')=CAST(? AS INTEGER)"); $st->execute([$fam, $d]); $id = $st->fetchColumn();
                 $dat = json_encode(['day' => $d, 'who' => mb_substr((string)($a['who'] ?? ''), 0, 24)]);
                 if ($id) { $db->prepare('UPDATE items SET data=? WHERE id=?')->execute([$dat, $id]); bump($db, $fam); } else addItem($db, $fam, 'rota', json_decode($dat, true)); return 'Set';
         }

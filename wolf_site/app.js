@@ -98,8 +98,8 @@ function renderCheck(){const c=$("check");if(S.hasKey&&((S.people.adults||[]).le
  c.innerHTML=`<div class="check"><b>Finish setting up Wolf</b><br>${S.hasKey?"✓":"•"} Add your free AI key<br>${((S.people.adults||[]).length||(S.people.kids||[]).length)?"✓":"•"} Add your family's names<br><button class="btn sm" data-go="setup">Open the set-up guide</button></div>`}
 function renderAll(){renderWeek();renderLists();renderNotes();renderChores();renderMeals();renderPhotos();renderMore();renderFam()}
 /* ---------- navigation ---------- */
-function go(id,navKey){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.id==="t-"+id));document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.t===(navKey||id)));const m=document.querySelector("main");if(m)m.scrollTop=0}
-document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){const id=g.dataset.go;go(id,id==="setup"?"fam":(["chores","meals","notes","store"].includes(id)?"more":id))}});
+function go(id,navKey){document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("on",t.id==="t-"+id));document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x.dataset.t===(navKey||id)));const m=document.querySelector("main");if(m)m.scrollTop=0;if(id==="draw")setTimeout(sizeCv,0)}
+document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g){const id=g.dataset.go;go(id,id==="setup"?"fam":(["chores","meals","notes","store","draw"].includes(id)?"more":id))}});
 document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.t));
 /* ---------- chat ---------- */
 const chat=$("chat"),sugg=$("sugg"),q=$("q");
@@ -159,6 +159,37 @@ arm($("leavebtn"),"",async()=>{try{await api("leave",{body:{}})}catch(e){}authed
 arm($("wipebtn"),"",async()=>{try{await api("wipe",{body:{}});authed=false;D={ev:[],shop:[],rem:[],notes:[],chores:[],meals:[],rota:[],photos:[],ics:[]};S.ver=0;showWelcome();toast("Your family's data was deleted.")}catch(e){toast(e.message)}});
 arm($("codebtn"),"",async()=>{try{const j=await api("newcode",{body:{}});S.code=j.code;renderFam();toast("New code made. The old one no longer works.")}catch(e){toast(e.message)}});
 $("fbsend").onclick=async()=>{const t=$("fbtxt").value.trim();if(!t){toast("Write something first.");return}try{await api("feedback",{body:{text:t}});$("fbtxt").value="";toast("Thank you. We read every message.")}catch(e){toast(e.message)}};
+
+/* ---------- draw together ---------- */
+const pad6=s=>(s+"000000").slice(0,6);
+const DR={rows:[],since:0,col:"#ffffff",w:5,eraser:false,drawing:false,sid:"",buf:[],newPts:0,last:null,flush:null,me:pad6(lget("wolf_dev")||(()=>{const d=Math.random().toString(36).slice(2,8);lset("wolf_dev",d);return d})())};
+const cv=$("dcv"),cx=cv.getContext("2d"),BG="#0d1833";
+function sizeCv(){const r=cv.parentElement.getBoundingClientRect(),w=Math.max(200,Math.floor(r.width)),d=window.devicePixelRatio||1;cv.style.width=w+"px";cv.style.height=Math.round(w*4/3)+"px";cv.width=Math.round(w*d);cv.height=Math.round(w*4/3*d);redraw()}
+function seg(r){const W=cv.width,H=cv.height,p=r.p;cx.strokeStyle=r.c;cx.lineWidth=Math.max(1,r.w*W/400);cx.lineCap="round";cx.lineJoin="round";cx.beginPath();cx.moveTo(p[0][0]/1000*W,p[0][1]/1000*H);if(p.length===1)cx.lineTo(p[0][0]/1000*W+.1,p[0][1]/1000*H);for(let i=1;i<p.length;i++)cx.lineTo(p[i][0]/1000*W,p[i][1]/1000*H);cx.stroke()}
+function redraw(){cx.fillStyle=BG;cx.fillRect(0,0,cv.width,cv.height);DR.rows.forEach(r=>seg(r))}
+const pen=()=>DR.eraser?{c:BG,w:DR.w*4}:{c:DR.col,w:DR.w};
+function pt(e){const r=cv.getBoundingClientRect();return[Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*1000),Math.round(Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))*1000)]}
+let dErr=0;
+async function flushBuf(){if(!DR.newPts)return;const pts=DR.buf,s=DR.sid,pn=pen();DR.newPts=0;DR.buf=DR.drawing?[DR.last]:[];
+ try{await api("drawput",{body:{pts,c:pn.c,w:pn.w,s}})}catch(e){if(!dErr){dErr=1;toast(e.message);setTimeout(()=>dErr=0,5000)}}}
+cv.addEventListener("pointerdown",e=>{e.preventDefault();try{cv.setPointerCapture(e.pointerId)}catch(x){}DR.drawing=true;DR.sid=DR.me+pad6(Math.random().toString(36).slice(2,8));const p=pt(e);DR.buf=[p];DR.newPts=1;DR.last=p;seg({c:pen().c,w:pen().w,p:[p]});clearInterval(DR.flush);DR.flush=setInterval(flushBuf,300)});
+cv.addEventListener("pointermove",e=>{if(!DR.drawing)return;e.preventDefault();const p=pt(e);if(p[0]===DR.last[0]&&p[1]===DR.last[1])return;seg({c:pen().c,w:pen().w,p:[DR.last,p]});DR.buf.push(p);DR.newPts++;DR.last=p;if(DR.buf.length>=80)flushBuf()});
+const endDraw=()=>{if(!DR.drawing)return;DR.drawing=false;clearInterval(DR.flush);flushBuf()};
+cv.addEventListener("pointerup",endDraw);cv.addEventListener("pointercancel",endDraw);
+async function drawPoll(){if(!authed||document.hidden||!$("t-draw").classList.contains("on"))return;
+ try{const j=await api("draw",{qs:"&since="+DR.since});let full=false;const fresh=[];
+  j.rows.forEach(r=>{if(r.clear){DR.rows=[];fresh.length=0;full=true}else{DR.rows.push(r);if(String(r.s||"").slice(0,6)!==DR.me)fresh.push(r)}});
+  DR.since=j.max;if(full)redraw();fresh.forEach(r=>seg(r));if(j.rows.length)$("mc5").textContent="Live shared drawing board"}catch(e){}}
+setInterval(drawPoll,800);
+{const T=$("dtools");const cols=["#ffffff","#fca311","#2ec5ff","#14e0c0","#ff6b9d","#b6ff6b"];
+ T.innerHTML=cols.map((c,i)=>`<button class="sw ${i===0?"on":""}" data-c="${c}" style="background:${c}" aria-label="Colour ${i+1}"></button>`).join("")+'<button class="tb" data-w="3">Thin</button><button class="tb on" data-w="5">Medium</button><button class="tb" data-w="10">Thick</button><button class="tb" id="dera">Eraser</button><button class="tb" id="dsave">Save to photos</button><button class="tb" id="dclr">Clear</button>';
+ T.onclick=async e=>{const s=e.target.closest(".sw"),w=e.target.closest("[data-w]");
+  if(s){DR.col=s.dataset.c;DR.eraser=false;T.querySelectorAll(".sw").forEach(x=>x.classList.toggle("on",x===s));$("dera").classList.remove("on")}
+  if(w){DR.w=+w.dataset.w;T.querySelectorAll("[data-w]").forEach(x=>x.classList.toggle("on",x===w))}
+  if(e.target.id==="dera"){DR.eraser=!DR.eraser;e.target.classList.toggle("on",DR.eraser)}
+  if(e.target.id==="dsave"){cv.toBlob(b=>{if(b)addFiles([new File([b],"drawing.png",{type:"image/png"})])},"image/png")}
+  if(e.target.id==="dclr"){const b=e.target;if(b.dataset.arm){delete b.dataset.arm;b.textContent="Clear";try{await api("drawclear",{body:{}});DR.rows=[];redraw()}catch(er){toast(er.message)}}else{b.dataset.arm="1";b.textContent="Tap again to clear";setTimeout(()=>{delete b.dataset.arm;b.textContent="Clear"},4000)}}}}
+addEventListener("resize",()=>{if($("t-draw").classList.contains("on"))sizeCv()});
 /* ---------- start ---------- */
 if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
 (async()=>{try{const j=await api("me");S.support=j.support||"";S.video=j.video||"";showNotice(j.notice);if(j.authed){authed=true;$("boot").classList.remove("on");await sync(true)}else showWelcome()}catch(e){showWelcome();$("werr").textContent="Can't reach Wolf right now. Check your connection."}})();
